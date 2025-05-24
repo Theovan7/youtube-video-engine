@@ -1,0 +1,60 @@
+# Task ID: 6
+# Title: Implement ElevenLabs Integration Service
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Create a service to interact with the ElevenLabs API for generating AI voiceovers from text segments.
+# Details:
+1. Create ElevenLabsService class:
+   ```python
+   class ElevenLabsService:
+       def __init__(self, api_key):
+           self.api_key = api_key
+           self.base_url = 'https://api.elevenlabs.io/v1'
+           
+       def get_available_voices(self):
+           # Fetch available voices from ElevenLabs
+           response = requests.get(
+               f"{self.base_url}/voices",
+               headers={'xi-api-key': self.api_key}
+           )
+           response.raise_for_status()
+           return response.json()['voices']
+           
+       def generate_voice(self, text, voice_id, webhook_url=None):
+           # Request voice generation
+           payload = {
+               'text': text,
+               'model_id': 'eleven_monolingual_v1',
+               'voice_settings': {
+                   'stability': 0.5,
+                   'similarity_boost': 0.5
+               }
+           }
+           
+           if webhook_url:
+               payload['webhook_url'] = webhook_url
+               # Async request with webhook
+               response = requests.post(
+                   f"{self.base_url}/text-to-speech/{voice_id}/stream-async",
+                   json=payload,
+                   headers={'xi-api-key': self.api_key}
+               )
+           else:
+               # Sync request
+               response = requests.post(
+                   f"{self.base_url}/text-to-speech/{voice_id}",
+                   json=payload,
+                   headers={'xi-api-key': self.api_key}
+               )
+               
+           response.raise_for_status()
+           return response.json()
+   ```
+2. Implement retry logic for API failures
+3. Add support for different voice options and parameters
+4. Implement webhook URL generation for async callbacks
+5. Add audio format handling and validation
+
+# Test Strategy:
+Test with sample text to verify voice generation. Mock ElevenLabs API responses for unit tests. Test both synchronous and asynchronous generation modes. Verify error handling and retry logic. Test with various voice IDs and parameters.

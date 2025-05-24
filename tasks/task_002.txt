@@ -1,0 +1,26 @@
+# Task ID: 2
+# Title: Configure External Service Integrations
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Set up configuration for all external service integrations including Airtable, NCA Toolkit, ElevenLabs, GoAPI, and Digital Ocean Spaces.
+# Details:
+1. Create a configuration module for managing environment variables and secrets
+2. Implement secure API key management using environment variables
+3. Set up configuration classes for each external service:
+   ```python
+   class AirtableConfig:
+       API_KEY = os.environ.get('AIRTABLE_API_KEY')
+       BASE_ID = os.environ.get('AIRTABLE_BASE_ID')
+       VIDEOS_TABLE = os.environ.get('AIRTABLE_VIDEOS_TABLE')
+       SEGMENTS_TABLE = os.environ.get('AIRTABLE_SEGMENTS_TABLE')
+       JOBS_TABLE = os.environ.get('AIRTABLE_JOBS_TABLE')
+       WEBHOOK_EVENTS_TABLE = os.environ.get('AIRTABLE_WEBHOOK_EVENTS_TABLE')
+   
+   # Similar classes for NCA, ElevenLabs, GoAPI, DO Spaces
+   ```
+4. Implement configuration validation to ensure all required variables are set
+5. Create service client factories for each external service
+
+# Test Strategy:
+Write unit tests to verify configuration loading and validation. Test with sample environment variables to ensure proper initialization. Verify error handling for missing configurations.

@@ -1,0 +1,162 @@
+## YouTube Video Engine - Product Requirements Document
+
+## Executive Summary
+The YouTube Video Engine is a production-ready automation system that transforms written scripts into fully produced videos with AI-generated voiceovers and background music. This system leverages proven patterns from previous implementations and focuses on simplicity, reliability, and maintainability.
+
+## Problem Statement
+Content creators need an automated way to convert written scripts into fully produced videos with professional voiceovers and background music, without manual video editing or complex workflows.
+
+## Solution Overview
+A Flask-based API service that:
+- Accepts scripts and processes them into timed segments
+- Generates AI voiceovers for each segment using ElevenLabs
+- Combines voiceovers with background videos using NCA Toolkit
+- Concatenates segments into a complete video
+- Generates and adds background music using GoAPI
+- Tracks all operations in Airtable with complete webhook handling
+
+## Key Features
+
+### 1. Script Processing
+- Parse scripts into timed segments (default 30 seconds per segment)
+- Store segments with timing information in Airtable
+- Support flexible segment duration configuration
+
+### 2. Voiceover Generation
+- Integrate with ElevenLabs API for AI text-to-speech
+- Support multiple voice options
+- Handle async webhook callbacks
+- Store generated audio files via NCA Toolkit
+
+### 3. Media Combination
+- Combine background videos with voiceovers
+- Use proven NCA Toolkit FFmpeg patterns
+- Handle all webhook responses correctly
+- Support various video formats
+
+### 4. Video Assembly
+- Concatenate all segment videos into one
+- Maintain proper timing and sequencing
+- Generate final output with professional quality
+
+### 5. Music Integration
+- Generate AI background music via GoAPI (Suno)
+- Add music to final video
+- Support custom music prompts
+- Handle volume balancing
+
+### 6. Data Management
+- All data stored in Airtable (no PostgreSQL needed)
+- Comprehensive job tracking
+- Complete audit trail
+- Flexible field mapping for any Airtable structure
+
+### 7. Error Handling
+- Comprehensive error messages
+- Retry logic for transient failures
+- Webhook event logging
+- Graceful degradation
+
+## Technical Requirements
+
+### Architecture
+- Python 3.11+ with Flask framework
+- RESTful API design
+- Webhook-based async processing
+- Docker containerization
+- Fly.io deployment
+
+### External Services
+- Airtable for all data storage
+- NCA Toolkit for media processing (FREE)
+- ElevenLabs for voice generation
+- GoAPI for music generation
+- Digital Ocean Spaces for file storage (via NCA)
+
+### Performance Requirements
+- < 5 minute total processing time per video
+- 95%+ success rate
+- Support concurrent video processing
+- Handle videos up to 10 minutes long
+
+### Security Requirements
+- Secure API key management
+- Webhook signature validation
+- Input validation and sanitization
+- Rate limiting
+
+## User Stories
+
+### As a Content Creator
+- I want to upload a script and get a fully produced video
+- I want to choose different voices for narration
+- I want to customize background music style
+- I want to track the progress of my video production
+
+### As an Administrator
+- I want to monitor system health and performance
+- I want to track API usage and costs
+- I want to debug failed video productions
+- I want to manage API keys and configurations
+
+## API Endpoints
+
+### Core Endpoints
+1. POST /api/v1/process-script - Parse script into segments
+2. POST /api/v1/generate-voiceover - Generate voiceover for segment
+3. POST /api/v1/combine-segment-media - Combine video with voiceover
+4. POST /api/v1/combine-all-segments - Concatenate all segments
+5. POST /api/v1/generate-and-add-music - Add background music
+
+### Webhook Endpoints
+1. POST /webhooks/nca-toolkit - Handle NCA callbacks
+2. POST /webhooks/elevenlabs - Handle voice generation callbacks
+3. POST /webhooks/goapi - Handle music generation callbacks
+
+### Utility Endpoints
+1. GET /health - System health check
+2. GET /api/v1/jobs/{job_id} - Check job status
+
+## Database Schema (Airtable)
+
+### Videos Table
+- Name, Script, Status, Segments (link), Combined Segments Video, Music Prompt, Music, Final Video, Error Details, Timestamps
+
+### Segments Table
+- Name, Video (link), Text, Order, Timings, Voice ID, Base Video, Voiceover, Combined, Status
+
+### Jobs Table
+- Job ID, Type, Status, Related Video/Segment, External Job ID, Webhook URL, Payloads, Error Details, Timestamps
+
+### Webhook Events Table
+- Event ID, Service, Endpoint, Raw Payload, Processed, Related Job, Success, Timestamp
+
+## Success Criteria
+- Successfully process scripts into timed segments
+- Generate AI voiceovers with proper timing
+- Combine all media without FFmpeg errors
+- Handle all webhook formats correctly
+- Maintain complete audit trail in Airtable
+- Deploy to production on Fly.io
+- Achieve < 5 minute processing time
+- Reach 95%+ success rate
+
+## Timeline
+- Phase 1: Foundation & Setup (Days 1-3)
+- Phase 2: Service Integrations (Days 4-7)
+- Phase 3: Core Features (Days 8-12)
+- Phase 4: Testing & Refinement (Days 13-15)
+- Phase 5: Production Deployment (Days 16-18)
+
+## Risk Mitigation
+- Use proven NCA Toolkit patterns to avoid FFmpeg issues
+- Implement flexible field mapping for Airtable variations
+- Comprehensive webhook logging from day one
+- Thorough integration testing before production
+- Maintain simple architecture without unnecessary complexity
+
+## Budget
+- Monthly infrastructure: ~$50-100
+- API usage costs: Variable based on usage
+- Development time: 18 days
+- No licensing costs (NCA Toolkit is free)

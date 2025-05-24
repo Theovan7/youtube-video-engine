@@ -1,0 +1,34 @@
+# Task ID: 1
+# Title: Setup Project Repository and Structure
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Initialize the project repository with proper structure for a Flask-based API service, including Docker configuration for deployment to Fly.io.
+# Details:
+1. Create a new Git repository
+2. Set up Python 3.11+ virtual environment
+3. Create project structure:
+   - app/
+     - api/
+     - models/
+     - services/
+     - utils/
+     - webhooks/
+   - tests/
+   - config/
+4. Initialize Flask application
+5. Create requirements.txt with essential dependencies
+6. Set up Docker configuration:
+   ```dockerfile
+   FROM python:3.11-slim
+   WORKDIR /app
+   COPY requirements.txt .
+   RUN pip install --no-cache-dir -r requirements.txt
+   COPY . .
+   CMD ["gunicorn", "--bind", "0.0.0.0:8080", "app:app"]
+   ```
+7. Create fly.toml for Fly.io deployment
+8. Set up .gitignore for Python projects
+
+# Test Strategy:
+Verify project structure is complete and follows best practices. Ensure Docker container builds successfully and runs locally. Test basic Flask application startup.

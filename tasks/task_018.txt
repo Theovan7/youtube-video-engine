@@ -1,0 +1,32 @@
+# Task ID: 18
+# Title: Implement Rate Limiting Middleware
+# Status: pending
+# Dependencies: 1
+# Priority: low
+# Description: Create middleware for rate limiting API requests to prevent abuse and ensure fair usage.
+# Details:
+1. Create rate limiting middleware using Flask-Limiter:
+   ```python
+   from flask_limiter import Limiter
+   from flask_limiter.util import get_remote_address
+   
+   limiter = Limiter(
+       app,
+       key_func=get_remote_address,
+       default_limits=["200 per day", "50 per hour"]
+   )
+   
+   # Apply specific limits to endpoints
+   @app.route('/api/v1/process-script', methods=['POST'])
+   @limiter.limit("10 per minute")
+   def process_script():
+       # Existing implementation
+       pass
+   ```
+2. Implement custom key functions for API key-based rate limiting
+3. Add different rate limits for different endpoints based on resource usage
+4. Implement rate limit headers in responses
+5. Add configurable rate limits based on user tiers
+
+# Test Strategy:
+Test rate limiting with rapid requests to verify limits are enforced. Test with different API keys to verify per-key limits. Verify rate limit headers are included in responses. Test rate limit exceeded error responses.

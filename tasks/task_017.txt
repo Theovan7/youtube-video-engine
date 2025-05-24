@@ -1,0 +1,77 @@
+# Task ID: 17
+# Title: Implement Health Check Endpoint
+# Status: pending
+# Dependencies: 1
+# Priority: low
+# Description: Create a health check endpoint to monitor system status and external service connectivity.
+# Details:
+1. Create Flask route for health check:
+   ```python
+   @app.route('/health', methods=['GET'])
+   def health_check():
+       health = {
+           'status': 'ok',
+           'timestamp': datetime.now().isoformat(),
+           'version': config.VERSION,
+           'services': {}
+       }
+       
+       # Check Airtable connectivity
+       try:
+           airtable_client = AirtableClient(config.AIRTABLE_API_KEY)
+           airtable_client.ping()
+           health['services']['airtable'] = {'status': 'ok'}
+       except Exception as e:
+           health['services']['airtable'] = {
+               'status': 'error',
+               'message': str(e)
+           }
+           health['status'] = 'degraded'
+       
+       # Check NCA Toolkit connectivity
+       try:
+           nca = NCAToolkitService(config.NCA_API_KEY)
+           nca.ping()
+           health['services']['nca_toolkit'] = {'status': 'ok'}
+       except Exception as e:
+           health['services']['nca_toolkit'] = {
+               'status': 'error',
+               'message': str(e)
+           }
+           health['status'] = 'degraded'
+       
+       # Check ElevenLabs connectivity
+       try:
+           elevenlabs = ElevenLabsService(config.ELEVENLABS_API_KEY)
+           elevenlabs.ping()
+           health['services']['elevenlabs'] = {'status': 'ok'}
+       except Exception as e:
+           health['services']['elevenlabs'] = {
+               'status': 'error',
+               'message': str(e)
+           }
+           health['status'] = 'degraded'
+       
+       # Check GoAPI connectivity
+       try:
+           goapi = GoAPIService(config.GOAPI_API_KEY)
+           goapi.ping()
+           health['services']['goapi'] = {'status': 'ok'}
+       except Exception as e:
+           health['services']['goapi'] = {
+               'status': 'error',
+               'message': str(e)
+           }
+           health['status'] = 'degraded'
+       
+       # Return appropriate status code
+       status_code = 200 if health['status'] == 'ok' else 500
+       return jsonify(health), status_code
+   ```
+2. Implement detailed service checks
+3. Add response time metrics
+4. Implement caching to prevent frequent external API calls
+5. Add system resource metrics (CPU, memory, disk)
+
+# Test Strategy:
+Test health check endpoint with all services available. Test with various service failures to verify degraded status. Verify correct HTTP status codes are returned. Test response time metrics. Test caching behavior.

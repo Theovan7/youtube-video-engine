@@ -1,0 +1,35 @@
+# Task ID: 4
+# Title: Implement Script Processing Service
+# Status: pending
+# Dependencies: 3
+# Priority: high
+# Description: Create a service to parse scripts into timed segments with configurable duration (default 30 seconds per segment).
+# Details:
+1. Create a ScriptProcessor class:
+   ```python
+   class ScriptProcessor:
+       def __init__(self, default_segment_duration=30):
+           self.default_segment_duration = default_segment_duration
+       
+       def process_script(self, script, segment_duration=None):
+           duration = segment_duration or self.default_segment_duration
+           # Split script into logical segments
+           segments = self._split_into_segments(script, duration)
+           return segments
+           
+       def _split_into_segments(self, script, target_duration):
+           # Algorithm to split text into segments that would take
+           # approximately target_duration seconds to narrate
+           # Estimate: ~150 words per minute = ~2.5 words per second
+           words_per_segment = target_duration * 2.5
+           # Implementation of text splitting logic
+           # Return list of segment objects with text and estimated duration
+       }
+   ```
+2. Implement natural language processing to split text at logical points
+3. Calculate estimated narration time based on word count
+4. Ensure segments maintain context and don't break mid-sentence
+5. Add support for custom markers in the script to force segment breaks
+
+# Test Strategy:
+Test with various script lengths and segment durations. Verify segments are split at logical points. Test edge cases like very short scripts or very long sentences. Measure accuracy of timing estimates.

@@ -1,0 +1,121 @@
+# Task ID: 8
+# Title: Implement ElevenLabs Webhook Handler
+# Status: pending
+# Dependencies: 3, 6, 7
+# Priority: high
+# Description: Create the webhook endpoint to handle callbacks from ElevenLabs when voice generation is complete.
+# Details:
+1. Create Flask route for ElevenLabs webhooks:
+   ```python
+   @app.route('/webhooks/elevenlabs', methods=['POST'])
+   def elevenlabs_webhook():
+       # Log raw webhook payload
+       payload = request.json
+       segment_id = request.args.get('segment_id')
+       
+       # Create webhook event record
+       event = WebhookEventModel().create({
+           'Event ID': str(uuid.uuid4()),
+           'Service': 'ElevenLabs',
+           'Endpoint': '/webhooks/elevenlabs',
+           'Raw Payload': json.dumps(payload),
+           'Processed': False,
+           'Success': None,
+           'Timestamp': datetime.now().isoformat()
+       })
+       
+       try:
+           # Find related job
+           jobs = JobModel().find({
+               'Related Segment': [segment_id],
+               'Type': 'voiceover_generation',
+               'Status': 'processing'
+           })
+           
+           if not jobs:
+               raise Exception(f"No matching job found for segment {segment_id}")
+               
+           job = jobs[0]
+           
+           # Process webhook payload
+           if payload.get('status') == 'completed':
+               # Get audio URL from payload
+               audio_url = payload.get('output', {}).get('url')
+               
+               if not audio_url:
+                   raise Exception("No audio URL in webhook payload")
+                   
+               # Download audio file
+               audio_response = requests.get(audio_url)
+               audio_response.raise_for_status()
+               
+               # Upload to NCA Toolkit for storage
+               nca = NCAToolkitService(config.NCA_API_KEY)
+               audio_file = nca.upload_file(audio_response.content, 'audio/mpeg', f"voiceover_{segment_id}.mp3")
+               
+               # Update segment with voiceover file
+               SegmentModel().update(segment_id, {
+                   'Voiceover': audio_file['url'],
+                   'Status': 'voiceover_ready'
+               })
+               
+               # Update job status
+               JobModel().update(job['id'], {
+                   'Status': 'completed',
+                   'Timestamps': json.dumps({
+                       **json.loads(job['fields'].get('Timestamps', '{}')),
+                       'completed': datetime.now().isoformat()
+                   })
+               })
+               
+               # Update webhook event
+               WebhookEventModel().update(event['id'], {
+                   'Processed': True,
+                   'Success': True,
+                   'Related Job': [job['id']]
+               })
+               
+               return jsonify({'status': 'success'})
+           else:
+               # Handle error or other statuses
+               error_message = payload.get('error', {}).get('message', 'Unknown error')
+               
+               # Update job with error
+               JobModel().update(job['id'], {
+                   'Status': 'failed',
+                   'Error Details': error_message,
+                   'Timestamps': json.dumps({
+                       **json.loads(job['fields'].get('Timestamps', '{}')),
+                       'failed': datetime.now().isoformat()
+                   })
+               })
+               
+               # Update segment status
+               SegmentModel().update(segment_id, {'Status': 'voiceover_failed'})
+               
+               # Update webhook event
+               WebhookEventModel().update(event['id'], {
+                   'Processed': True,
+                   'Success': False,
+                   'Related Job': [job['id']]
+               })
+               
+               return jsonify({'status': 'error', 'message': error_message})
+               
+       except Exception as e:
+           # Log error and update webhook event
+           logger.error(f"Error processing ElevenLabs webhook: {str(e)}")
+           WebhookEventModel().update(event['id'], {
+               'Processed': True,
+               'Success': False,
+               'Error Details': str(e)
+           })
+           return jsonify({'status': 'error', 'message': str(e)}), 500
+   ```
+2. Implement webhook signature validation
+3. Add comprehensive error handling
+4. Implement retry logic for transient failures
+5. Add detailed logging for debugging
+
+# Test Strategy:
+Test with sample webhook payloads for successful and failed voice generation. Verify correct handling of various webhook formats. Test error scenarios and recovery. Verify all data is correctly updated in Airtable. Test webhook signature validation.

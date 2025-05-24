@@ -1,0 +1,116 @@
+# Task ID: 24
+# Title: Implement Comprehensive Integration Tests
+# Status: pending
+# Dependencies: 5, 7, 10, 12, 14, 16
+# Priority: medium
+# Description: Create integration tests to verify the entire video production pipeline works correctly.
+# Details:
+1. Create integration test suite using pytest:
+   ```python
+   import pytest
+   import requests
+   import time
+   
+   BASE_URL = 'http://localhost:8080'
+   
+   def test_full_video_production_pipeline():
+       # 1. Process script
+       script_response = requests.post(
+           f"{BASE_URL}/api/v1/process-script",
+           json={
+               'name': 'Test Video',
+               'script': 'This is a test script for integration testing.',
+               'segment_duration': 30
+           }
+       )
+       assert script_response.status_code == 200
+       video_id = script_response.json()['video_id']
+       
+       # 2. Generate voiceovers for all segments
+       segments_response = requests.get(f"{BASE_URL}/api/v1/video/{video_id}/segments")
+       assert segments_response.status_code == 200
+       segments = segments_response.json()['segments']
+       
+       for segment in segments:
+           voiceover_response = requests.post(
+               f"{BASE_URL}/api/v1/generate-voiceover",
+               json={
+                   'segment_id': segment['id'],
+                   'voice_id': 'default_voice_id'
+               }
+           )
+           assert voiceover_response.status_code == 200
+           
+           # Wait for voiceover to complete
+           job_id = voiceover_response.json()['job_id']
+           wait_for_job_completion(job_id)
+       
+       # 3. Combine media for all segments
+       for segment in segments:
+           combine_response = requests.post(
+               f"{BASE_URL}/api/v1/combine-segment-media",
+               json={
+                   'segment_id': segment['id'],
+                   'base_video_url': 'https://example.com/test_video.mp4'
+               }
+           )
+           assert combine_response.status_code == 200
+           
+           # Wait for combination to complete
+           job_id = combine_response.json()['job_id']
+           wait_for_job_completion(job_id)
+       
+       # 4. Combine all segments
+       combine_all_response = requests.post(
+           f"{BASE_URL}/api/v1/combine-all-segments",
+           json={'video_id': video_id}
+       )
+       assert combine_all_response.status_code == 200
+       
+       # Wait for concatenation to complete
+       job_id = combine_all_response.json()['job_id']
+       wait_for_job_completion(job_id)
+       
+       # 5. Generate and add music
+       music_response = requests.post(
+           f"{BASE_URL}/api/v1/generate-and-add-music",
+           json={
+               'video_id': video_id,
+               'music_prompt': 'Calm, instrumental background music'
+           }
+       )
+       assert music_response.status_code == 200
+       
+       # Wait for music generation and addition to complete
+       job_id = music_response.json()['job_id']
+       wait_for_job_completion(job_id)
+       
+       # 6. Verify final video is available
+       video_response = requests.get(f"{BASE_URL}/api/v1/video/{video_id}")
+       assert video_response.status_code == 200
+       assert video_response.json()['status'] == 'completed'
+       assert 'final_video_url' in video_response.json()
+       
+   def wait_for_job_completion(job_id, timeout=300, interval=5):
+       start_time = time.time()
+       while time.time() - start_time < timeout:
+           job_response = requests.get(f"{BASE_URL}/api/v1/jobs/{job_id}")
+           assert job_response.status_code == 200
+           
+           status = job_response.json()['status']
+           if status == 'completed':
+               return True
+           elif status == 'failed':
+               pytest.fail(f"Job {job_id} failed: {job_response.json().get('error')}")
+               
+           time.sleep(interval)
+           
+       pytest.fail(f"Job {job_id} did not complete within {timeout} seconds")
+   ```
+2. Create mock external services for testing
+3. Implement test fixtures for common test data
+4. Add performance tests for critical operations
+5. Implement test coverage reporting
+
+# Test Strategy:
+Run integration tests in a controlled environment with mock external services. Verify all steps of the video production pipeline work correctly. Test with various input scripts and configurations. Measure and verify performance metrics. Test error recovery scenarios.

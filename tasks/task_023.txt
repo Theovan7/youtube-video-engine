@@ -1,0 +1,40 @@
+# Task ID: 23
+# Title: Implement Fly.io Deployment Configuration
+# Status: pending
+# Dependencies: 1
+# Priority: low
+# Description: Create deployment configuration for Fly.io to host the application in production.
+# Details:
+1. Create fly.toml configuration file:
+   ```toml
+   app = "youtube-video-engine"
+   
+   [build]
+     dockerfile = "Dockerfile"
+   
+   [env]
+     PORT = "8080"
+   
+   [http_service]
+     internal_port = 8080
+     force_https = true
+     auto_stop_machines = true
+     auto_start_machines = true
+     min_machines_running = 1
+     processes = ["app"]
+   
+   [[http_service.checks]]
+     grace_period = "10s"
+     interval = "30s"
+     method = "GET"
+     path = "/health"
+     protocol = "http"
+     timeout = "5s"
+   ```
+2. Configure secrets management for API keys
+3. Set up environment-specific configurations
+4. Configure scaling rules based on load
+5. Set up monitoring and alerting
+
+# Test Strategy:
+Test deployment to a staging environment on Fly.io. Verify application starts correctly. Test scaling behavior. Verify secrets are correctly loaded. Test health check endpoint is working correctly. Verify HTTPS is enforced.

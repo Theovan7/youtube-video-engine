@@ -1,0 +1,88 @@
+# Task ID: 9
+# Title: Implement NCA Toolkit Integration Service
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Create a service to interact with the NCA Toolkit for media processing, file storage, and FFmpeg operations.
+# Details:
+1. Create NCAToolkitService class:
+   ```python
+   class NCAToolkitService:
+       def __init__(self, api_key):
+           self.api_key = api_key
+           self.base_url = 'https://api.ncatoolkit.com/v1'
+           
+       def upload_file(self, file_content, content_type, filename):
+           # Upload file to NCA Toolkit (which stores in DO Spaces)
+           response = requests.post(
+               f"{self.base_url}/files/upload",
+               files={'file': (filename, file_content, content_type)},
+               headers={'Authorization': f"Bearer {self.api_key}"}
+           )
+           response.raise_for_status()
+           return response.json()
+           
+       def combine_audio_video(self, video_url, audio_url, output_filename, webhook_url=None):
+           # Request media combination
+           payload = {
+               'video_url': video_url,
+               'audio_url': audio_url,
+               'output_filename': output_filename
+           }
+           
+           if webhook_url:
+               payload['webhook_url'] = webhook_url
+               
+           response = requests.post(
+               f"{self.base_url}/media/combine",
+               json=payload,
+               headers={'Authorization': f"Bearer {self.api_key}"}
+           )
+           response.raise_for_status()
+           return response.json()
+           
+       def concatenate_videos(self, video_urls, output_filename, webhook_url=None):
+           # Request video concatenation
+           payload = {
+               'video_urls': video_urls,
+               'output_filename': output_filename
+           }
+           
+           if webhook_url:
+               payload['webhook_url'] = webhook_url
+               
+           response = requests.post(
+               f"{self.base_url}/media/concatenate",
+               json=payload,
+               headers={'Authorization': f"Bearer {self.api_key}"}
+           )
+           response.raise_for_status()
+           return response.json()
+           
+       def add_background_music(self, video_url, music_url, output_filename, volume_ratio=0.2, webhook_url=None):
+           # Request adding background music
+           payload = {
+               'video_url': video_url,
+               'music_url': music_url,
+               'output_filename': output_filename,
+               'volume_ratio': volume_ratio
+           }
+           
+           if webhook_url:
+               payload['webhook_url'] = webhook_url
+               
+           response = requests.post(
+               f"{self.base_url}/media/add-music",
+               json=payload,
+               headers={'Authorization': f"Bearer {self.api_key}"}
+           )
+           response.raise_for_status()
+           return response.json()
+   ```
+2. Implement retry logic for API failures
+3. Add support for various media formats and options
+4. Implement webhook URL generation for async callbacks
+5. Add detailed error handling and logging
+
+# Test Strategy:
+Test file uploads with various file types and sizes. Test media combination with sample audio and video files. Test video concatenation with multiple input files. Test adding background music with different volume ratios. Mock NCA Toolkit API responses for unit tests. Verify error handling and retry logic.

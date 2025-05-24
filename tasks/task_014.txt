@@ -1,0 +1,68 @@
+# Task ID: 14
+# Title: Implement Generate and Add Music API Endpoint
+# Status: pending
+# Dependencies: 3, 9, 12, 13
+# Priority: medium
+# Description: Create the API endpoint for generating background music and adding it to the final video.
+# Details:
+1. Create Flask route for generating and adding music:
+   ```python
+   @app.route('/api/v1/generate-and-add-music', methods=['POST'])
+   def generate_and_add_music():
+       data = request.json
+       video_id = data.get('video_id')
+       music_prompt = data.get('music_prompt', 'Calm, instrumental background music')
+       
+       if not video_id:
+           return jsonify({'error': 'Video ID is required'}), 400
+           
+       # Get video from Airtable
+       video = VideoModel().get(video_id)
+       if not video:
+           return jsonify({'error': 'Video not found'}), 404
+           
+       # Check if segments are combined
+       if video['fields'].get('Status') != 'segments_combined':
+           return jsonify({'error': 'Segments not combined yet'}), 400
+           
+       combined_video_url = video['fields'].get('Combined Segments Video')
+       if not combined_video_url:
+           return jsonify({'error': 'Combined video URL not found'}), 400
+           
+       # Update video with music prompt and status
+       VideoModel().update(video_id, {
+           'Music Prompt': music_prompt,
+           'Status': 'generating_music'
+       })
+       
+       # Generate webhook URL for callback
+       webhook_url = f"{config.BASE_URL}/webhooks/goapi?video_id={video_id}"
+       
+       # Request music generation
+       goapi = GoAPIService(config.GOAPI_API_KEY)
+       result = goapi.generate_music(music_prompt, webhook_url=webhook_url)
+       
+       # Create job record in Airtable
+       job = JobModel().create({
+           'Job ID': str(uuid.uuid4()),
+           'Type': 'music_generation',
+           'Status': 'processing',
+           'Related Video': [video_id],
+           'External Job ID': result.get('job_id'),
+           'Webhook URL': webhook_url,
+           'Timestamps': json.dumps({'created': datetime.now().isoformat()})
+       })
+       
+       return jsonify({
+           'video_id': video_id,
+           'job_id': job['fields']['Job ID'],
+           'status': 'processing'
+       })
+   ```
+2. Implement input validation and error handling
+3. Add logging for all operations
+4. Implement rate limiting
+5. Add support for custom music parameters
+
+# Test Strategy:
+Test API with valid and invalid requests. Verify correct HTTP status codes are returned. Test with various video IDs and music prompts. Verify job records are correctly created in Airtable. Test error handling for GoAPI failures.

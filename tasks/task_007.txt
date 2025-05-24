@@ -1,0 +1,57 @@
+# Task ID: 7
+# Title: Implement Generate Voiceover API Endpoint
+# Status: pending
+# Dependencies: 3, 6
+# Priority: high
+# Description: Create the API endpoint for generating voiceovers for segments using ElevenLabs and tracking jobs in Airtable.
+# Details:
+1. Create Flask route for voiceover generation:
+   ```python
+   @app.route('/api/v1/generate-voiceover', methods=['POST'])
+   def generate_voiceover():
+       data = request.json
+       segment_id = data.get('segment_id')
+       voice_id = data.get('voice_id', 'default_voice_id')
+       
+       if not segment_id:
+           return jsonify({'error': 'Segment ID is required'}), 400
+           
+       # Get segment from Airtable
+       segment = SegmentModel().get(segment_id)
+       if not segment:
+           return jsonify({'error': 'Segment not found'}), 404
+           
+       # Update segment with voice ID
+       SegmentModel().update(segment_id, {'Voice ID': voice_id, 'Status': 'generating_voice'})
+       
+       # Generate webhook URL for callback
+       webhook_url = f"{config.BASE_URL}/webhooks/elevenlabs?segment_id={segment_id}"
+       
+       # Request voice generation
+       elevenlabs = ElevenLabsService(config.ELEVENLABS_API_KEY)
+       result = elevenlabs.generate_voice(segment['fields']['Text'], voice_id, webhook_url)
+       
+       # Create job record in Airtable
+       job = JobModel().create({
+           'Job ID': str(uuid.uuid4()),
+           'Type': 'voiceover_generation',
+           'Status': 'processing',
+           'Related Segment': [segment_id],
+           'External Job ID': result.get('job_id'),
+           'Webhook URL': webhook_url,
+           'Timestamps': json.dumps({'created': datetime.now().isoformat()})
+       })
+       
+       return jsonify({
+           'segment_id': segment_id,
+           'job_id': job['fields']['Job ID'],
+           'status': 'processing'
+       })
+   ```
+2. Implement input validation and error handling
+3. Add logging for all operations
+4. Implement rate limiting
+5. Add support for synchronous generation for short segments
+
+# Test Strategy:
+Test API with valid and invalid requests. Verify correct HTTP status codes are returned. Test with various segment IDs and voice options. Verify job records are correctly created in Airtable. Test error handling for ElevenLabs API failures.

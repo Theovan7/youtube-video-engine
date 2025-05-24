@@ -1,0 +1,50 @@
+# Task ID: 22
+# Title: Implement Webhook Signature Validation
+# Status: pending
+# Dependencies: 8, 11, 15
+# Priority: medium
+# Description: Create a system to validate webhook signatures to ensure authenticity of incoming webhook requests.
+# Details:
+1. Implement webhook signature validation:
+   ```python
+   import hmac
+   import hashlib
+   
+   def validate_webhook_signature(request, secret, signature_header):
+       # Get signature from header
+       signature = request.headers.get(signature_header)
+       if not signature:
+           return False
+           
+       # Calculate expected signature
+       payload = request.get_data()
+       expected_signature = hmac.new(
+           secret.encode(),
+           payload,
+           hashlib.sha256
+       ).hexdigest()
+       
+       # Compare signatures using constant-time comparison
+       return hmac.compare_digest(signature, expected_signature)
+   
+   # Apply to webhook endpoints
+   @app.route('/webhooks/elevenlabs', methods=['POST'])
+   def elevenlabs_webhook():
+       # Validate signature
+       if not validate_webhook_signature(
+           request,
+           config.ELEVENLABS_WEBHOOK_SECRET,
+           'X-Elevenlabs-Signature'
+       ):
+           return jsonify({'error': 'Invalid signature'}), 401
+           
+       # Proceed with webhook handling
+       # ...
+   ```
+2. Implement signature validation for all webhook endpoints
+3. Add timestamp validation to prevent replay attacks
+4. Implement nonce validation for additional security
+5. Add detailed logging for signature validation failures
+
+# Test Strategy:
+Test signature validation with valid and invalid signatures. Verify correct HTTP status codes are returned for invalid signatures. Test with missing signature headers. Test timestamp validation for expired requests. Test nonce validation.

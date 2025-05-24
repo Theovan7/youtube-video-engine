@@ -1,0 +1,76 @@
+# Task ID: 10
+# Title: Implement Combine Segment Media API Endpoint
+# Status: pending
+# Dependencies: 3, 8, 9
+# Priority: medium
+# Description: Create the API endpoint for combining background videos with voiceovers for individual segments.
+# Details:
+1. Create Flask route for combining segment media:
+   ```python
+   @app.route('/api/v1/combine-segment-media', methods=['POST'])
+   def combine_segment_media():
+       data = request.json
+       segment_id = data.get('segment_id')
+       base_video_url = data.get('base_video_url')
+       
+       if not segment_id:
+           return jsonify({'error': 'Segment ID is required'}), 400
+           
+       if not base_video_url:
+           return jsonify({'error': 'Base video URL is required'}), 400
+           
+       # Get segment from Airtable
+       segment = SegmentModel().get(segment_id)
+       if not segment:
+           return jsonify({'error': 'Segment not found'}), 404
+           
+       # Check if voiceover is ready
+       if segment['fields'].get('Status') != 'voiceover_ready':
+           return jsonify({'error': 'Voiceover not ready for this segment'}), 400
+           
+       voiceover_url = segment['fields'].get('Voiceover')
+       if not voiceover_url:
+           return jsonify({'error': 'Voiceover URL not found'}), 400
+           
+       # Update segment with base video URL and status
+       SegmentModel().update(segment_id, {
+           'Base Video': base_video_url,
+           'Status': 'combining_media'
+       })
+       
+       # Generate webhook URL for callback
+       webhook_url = f"{config.BASE_URL}/webhooks/nca-toolkit?segment_id={segment_id}&operation=combine"
+       
+       # Request media combination
+       nca = NCAToolkitService(config.NCA_API_KEY)
+       result = nca.combine_audio_video(
+           base_video_url,
+           voiceover_url,
+           f"segment_{segment_id}_combined.mp4",
+           webhook_url
+       )
+       
+       # Create job record in Airtable
+       job = JobModel().create({
+           'Job ID': str(uuid.uuid4()),
+           'Type': 'media_combination',
+           'Status': 'processing',
+           'Related Segment': [segment_id],
+           'External Job ID': result.get('job_id'),
+           'Webhook URL': webhook_url,
+           'Timestamps': json.dumps({'created': datetime.now().isoformat()})
+       })
+       
+       return jsonify({
+           'segment_id': segment_id,
+           'job_id': job['fields']['Job ID'],
+           'status': 'processing'
+       })
+   ```
+2. Implement input validation and error handling
+3. Add logging for all operations
+4. Implement rate limiting
+5. Add support for custom video formats and options
+
+# Test Strategy:
+Test API with valid and invalid requests. Verify correct HTTP status codes are returned. Test with various segment IDs and video URLs. Verify job records are correctly created in Airtable. Test error handling for NCA Toolkit API failures.

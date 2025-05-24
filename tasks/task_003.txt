@@ -1,0 +1,33 @@
+# Task ID: 3
+# Title: Implement Airtable Data Models
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Create data models and service layer for interacting with Airtable, implementing the required tables for Videos, Segments, Jobs, and Webhook Events.
+# Details:
+1. Create Airtable service client using pyairtable
+2. Implement base model class for Airtable records:
+   ```python
+   class AirtableModel:
+       def __init__(self, table_name):
+           self.table = AirtableClient(table_name)
+       
+       def create(self, data):
+           return self.table.create(data)
+           
+       def update(self, record_id, data):
+           return self.table.update(record_id, data)
+           
+       def get(self, record_id):
+           return self.table.get(record_id)
+   ```
+3. Implement specific models for each table:
+   - VideoModel
+   - SegmentModel
+   - JobModel
+   - WebhookEventModel
+4. Add methods for querying and filtering records
+5. Implement field mapping functionality to support flexible Airtable structures
+
+# Test Strategy:
+Create mock Airtable responses and test CRUD operations for each model. Verify field mapping works correctly. Test error handling for API failures. Create integration tests with a test Airtable base.

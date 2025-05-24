@@ -1,0 +1,57 @@
+# Task ID: 16
+# Title: Implement Job Status API Endpoint
+# Status: pending
+# Dependencies: 3
+# Priority: low
+# Description: Create the API endpoint for checking the status of a job.
+# Details:
+1. Create Flask route for checking job status:
+   ```python
+   @app.route('/api/v1/jobs/<job_id>', methods=['GET'])
+   def get_job_status(job_id):
+       # Find job by ID
+       jobs = JobModel().find({'Job ID': job_id})
+       
+       if not jobs:
+           return jsonify({'error': 'Job not found'}), 404
+           
+       job = jobs[0]
+       
+       # Get related entity (video or segment)
+       related_entity = None
+       entity_type = None
+       
+       if 'Related Video' in job['fields'] and job['fields']['Related Video']:
+           video_id = job['fields']['Related Video'][0]
+           related_entity = VideoModel().get(video_id)
+           entity_type = 'video'
+       elif 'Related Segment' in job['fields'] and job['fields']['Related Segment']:
+           segment_id = job['fields']['Related Segment'][0]
+           related_entity = SegmentModel().get(segment_id)
+           entity_type = 'segment'
+       
+       # Build response
+       response = {
+           'job_id': job['fields']['Job ID'],
+           'type': job['fields']['Type'],
+           'status': job['fields']['Status'],
+           'created_at': json.loads(job['fields'].get('Timestamps', '{}')).get('created')
+       }
+       
+       if job['fields'].get('Error Details'):
+           response['error'] = job['fields']['Error Details']
+           
+       if related_entity:
+           response['entity_type'] = entity_type
+           response['entity_id'] = related_entity['id']
+           response['entity_status'] = related_entity['fields'].get('Status')
+       
+       return jsonify(response)
+   ```
+2. Implement error handling
+3. Add logging for all operations
+4. Add support for detailed job information
+5. Implement caching for frequent status checks
+
+# Test Strategy:
+Test API with valid and invalid job IDs. Verify correct HTTP status codes are returned. Test with various job types and statuses. Verify all job information is correctly returned. Test error handling for Airtable API failures.

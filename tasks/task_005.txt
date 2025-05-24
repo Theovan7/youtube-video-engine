@@ -1,0 +1,61 @@
+# Task ID: 5
+# Title: Implement Process Script API Endpoint
+# Status: pending
+# Dependencies: 3, 4
+# Priority: high
+# Description: Create the API endpoint for processing scripts into segments and storing them in Airtable.
+# Details:
+1. Create Flask route for script processing:
+   ```python
+   @app.route('/api/v1/process-script', methods=['POST'])
+   def process_script():
+       data = request.json
+       script = data.get('script')
+       segment_duration = data.get('segment_duration', 30)
+       
+       if not script:
+           return jsonify({'error': 'Script is required'}), 400
+           
+       # Create video record in Airtable
+       video = VideoModel().create({
+           'Name': data.get('name', 'Untitled Video'),
+           'Script': script,
+           'Status': 'processing'
+       })
+       
+       # Process script into segments
+       processor = ScriptProcessor()
+       segments = processor.process_script(script, segment_duration)
+       
+       # Store segments in Airtable
+       segment_records = []
+       for i, segment in enumerate(segments):
+           segment_record = SegmentModel().create({
+               'Name': f"Segment {i+1}",
+               'Video': [video['id']],
+               'Text': segment['text'],
+               'Order': i+1,
+               'Timings': json.dumps(segment['timing']),
+               'Status': 'pending'
+           })
+           segment_records.append(segment_record)
+       
+       # Update video with segment links
+       VideoModel().update(video['id'], {
+           'Segments': [s['id'] for s in segment_records],
+           'Status': 'segments_created'
+       })
+       
+       return jsonify({
+           'video_id': video['id'],
+           'segments': len(segment_records),
+           'status': 'segments_created'
+       })
+   ```
+2. Implement input validation and sanitization
+3. Add error handling for Airtable API failures
+4. Implement rate limiting for the endpoint
+5. Add logging for all operations
+
+# Test Strategy:
+Test API with valid and invalid requests. Verify correct HTTP status codes are returned. Test with various script lengths and configurations. Verify all data is correctly stored in Airtable. Test rate limiting and error handling.

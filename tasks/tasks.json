@@ -1,0 +1,357 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Setup Project Repository and Structure",
+      "description": "Initialize the project repository with proper structure for a Flask-based API service, including Docker configuration for deployment to Fly.io.",
+      "details": "1. Create a new Git repository\n2. Set up Python 3.11+ virtual environment\n3. Create project structure:\n   - app/\n     - api/\n     - models/\n     - services/\n     - utils/\n     - webhooks/\n   - tests/\n   - config/\n4. Initialize Flask application\n5. Create requirements.txt with essential dependencies\n6. Set up Docker configuration:\n   ```dockerfile\n   FROM python:3.11-slim\n   WORKDIR /app\n   COPY requirements.txt .\n   RUN pip install --no-cache-dir -r requirements.txt\n   COPY . .\n   CMD [\"gunicorn\", \"--bind\", \"0.0.0.0:8080\", \"app:app\"]\n   ```\n7. Create fly.toml for Fly.io deployment\n8. Set up .gitignore for Python projects",
+      "testStrategy": "Verify project structure is complete and follows best practices. Ensure Docker container builds successfully and runs locally. Test basic Flask application startup.",
+      "priority": "high",
+      "dependencies": [],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 2,
+      "title": "Configure External Service Integrations",
+      "description": "Set up configuration for all external service integrations including Airtable, NCA Toolkit, ElevenLabs, GoAPI, and Digital Ocean Spaces.",
+      "details": "1. Create a configuration module for managing environment variables and secrets\n2. Implement secure API key management using environment variables\n3. Set up configuration classes for each external service:\n   ```python\n   class AirtableConfig:\n       API_KEY = os.environ.get('AIRTABLE_API_KEY')\n       BASE_ID = os.environ.get('AIRTABLE_BASE_ID')\n       VIDEOS_TABLE = os.environ.get('AIRTABLE_VIDEOS_TABLE')\n       SEGMENTS_TABLE = os.environ.get('AIRTABLE_SEGMENTS_TABLE')\n       JOBS_TABLE = os.environ.get('AIRTABLE_JOBS_TABLE')\n       WEBHOOK_EVENTS_TABLE = os.environ.get('AIRTABLE_WEBHOOK_EVENTS_TABLE')\n   \n   # Similar classes for NCA, ElevenLabs, GoAPI, DO Spaces\n   ```\n4. Implement configuration validation to ensure all required variables are set\n5. Create service client factories for each external service",
+      "testStrategy": "Write unit tests to verify configuration loading and validation. Test with sample environment variables to ensure proper initialization. Verify error handling for missing configurations.",
+      "priority": "high",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 3,
+      "title": "Implement Airtable Data Models",
+      "description": "Create data models and service layer for interacting with Airtable, implementing the required tables for Videos, Segments, Jobs, and Webhook Events.",
+      "details": "1. Create Airtable service client using pyairtable\n2. Implement base model class for Airtable records:\n   ```python\n   class AirtableModel:\n       def __init__(self, table_name):\n           self.table = AirtableClient(table_name)\n       \n       def create(self, data):\n           return self.table.create(data)\n           \n       def update(self, record_id, data):\n           return self.table.update(record_id, data)\n           \n       def get(self, record_id):\n           return self.table.get(record_id)\n   ```\n3. Implement specific models for each table:\n   - VideoModel\n   - SegmentModel\n   - JobModel\n   - WebhookEventModel\n4. Add methods for querying and filtering records\n5. Implement field mapping functionality to support flexible Airtable structures",
+      "testStrategy": "Create mock Airtable responses and test CRUD operations for each model. Verify field mapping works correctly. Test error handling for API failures. Create integration tests with a test Airtable base.",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 4,
+      "title": "Implement Script Processing Service",
+      "description": "Create a service to parse scripts into timed segments with configurable duration (default 30 seconds per segment).",
+      "details": "1. Create a ScriptProcessor class:\n   ```python\n   class ScriptProcessor:\n       def __init__(self, default_segment_duration=30):\n           self.default_segment_duration = default_segment_duration\n       \n       def process_script(self, script, segment_duration=None):\n           duration = segment_duration or self.default_segment_duration\n           # Split script into logical segments\n           segments = self._split_into_segments(script, duration)\n           return segments\n           \n       def _split_into_segments(self, script, target_duration):\n           # Algorithm to split text into segments that would take\n           # approximately target_duration seconds to narrate\n           # Estimate: ~150 words per minute = ~2.5 words per second\n           words_per_segment = target_duration * 2.5\n           # Implementation of text splitting logic\n           # Return list of segment objects with text and estimated duration\n       }\n   ```\n2. Implement natural language processing to split text at logical points\n3. Calculate estimated narration time based on word count\n4. Ensure segments maintain context and don't break mid-sentence\n5. Add support for custom markers in the script to force segment breaks",
+      "testStrategy": "Test with various script lengths and segment durations. Verify segments are split at logical points. Test edge cases like very short scripts or very long sentences. Measure accuracy of timing estimates.",
+      "priority": "high",
+      "dependencies": [
+        3
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 5,
+      "title": "Implement Process Script API Endpoint",
+      "description": "Create the API endpoint for processing scripts into segments and storing them in Airtable.",
+      "details": "1. Create Flask route for script processing:\n   ```python\n   @app.route('/api/v1/process-script', methods=['POST'])\n   def process_script():\n       data = request.json\n       script = data.get('script')\n       segment_duration = data.get('segment_duration', 30)\n       \n       if not script:\n           return jsonify({'error': 'Script is required'}), 400\n           \n       # Create video record in Airtable\n       video = VideoModel().create({\n           'Name': data.get('name', 'Untitled Video'),\n           'Script': script,\n           'Status': 'processing'\n       })\n       \n       # Process script into segments\n       processor = ScriptProcessor()\n       segments = processor.process_script(script, segment_duration)\n       \n       # Store segments in Airtable\n       segment_records = []\n       for i, segment in enumerate(segments):\n           segment_record = SegmentModel().create({\n               'Name': f\"Segment {i+1}\",\n               'Video': [video['id']],\n               'Text': segment['text'],\n               'Order': i+1,\n               'Timings': json.dumps(segment['timing']),\n               'Status': 'pending'\n           })\n           segment_records.append(segment_record)\n       \n       # Update video with segment links\n       VideoModel().update(video['id'], {\n           'Segments': [s['id'] for s in segment_records],\n           'Status': 'segments_created'\n       })\n       \n       return jsonify({\n           'video_id': video['id'],\n           'segments': len(segment_records),\n           'status': 'segments_created'\n       })\n   ```\n2. Implement input validation and sanitization\n3. Add error handling for Airtable API failures\n4. Implement rate limiting for the endpoint\n5. Add logging for all operations",
+      "testStrategy": "Test API with valid and invalid requests. Verify correct HTTP status codes are returned. Test with various script lengths and configurations. Verify all data is correctly stored in Airtable. Test rate limiting and error handling.",
+      "priority": "high",
+      "dependencies": [
+        3,
+        4
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 6,
+      "title": "Implement ElevenLabs Integration Service",
+      "description": "Create a service to interact with the ElevenLabs API for generating AI voiceovers from text segments.",
+      "details": "1. Create ElevenLabsService class:\n   ```python\n   class ElevenLabsService:\n       def __init__(self, api_key):\n           self.api_key = api_key\n           self.base_url = 'https://api.elevenlabs.io/v1'\n           \n       def get_available_voices(self):\n           # Fetch available voices from ElevenLabs\n           response = requests.get(\n               f\"{self.base_url}/voices\",\n               headers={'xi-api-key': self.api_key}\n           )\n           response.raise_for_status()\n           return response.json()['voices']\n           \n       def generate_voice(self, text, voice_id, webhook_url=None):\n           # Request voice generation\n           payload = {\n               'text': text,\n               'model_id': 'eleven_monolingual_v1',\n               'voice_settings': {\n                   'stability': 0.5,\n                   'similarity_boost': 0.5\n               }\n           }\n           \n           if webhook_url:\n               payload['webhook_url'] = webhook_url\n               # Async request with webhook\n               response = requests.post(\n                   f\"{self.base_url}/text-to-speech/{voice_id}/stream-async\",\n                   json=payload,\n                   headers={'xi-api-key': self.api_key}\n               )\n           else:\n               # Sync request\n               response = requests.post(\n                   f\"{self.base_url}/text-to-speech/{voice_id}\",\n                   json=payload,\n                   headers={'xi-api-key': self.api_key}\n               )\n               \n           response.raise_for_status()\n           return response.json()\n   ```\n2. Implement retry logic for API failures\n3. Add support for different voice options and parameters\n4. Implement webhook URL generation for async callbacks\n5. Add audio format handling and validation",
+      "testStrategy": "Test with sample text to verify voice generation. Mock ElevenLabs API responses for unit tests. Test both synchronous and asynchronous generation modes. Verify error handling and retry logic. Test with various voice IDs and parameters.",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 7,
+      "title": "Implement Generate Voiceover API Endpoint",
+      "description": "Create the API endpoint for generating voiceovers for segments using ElevenLabs and tracking jobs in Airtable.",
+      "details": "1. Create Flask route for voiceover generation:\n   ```python\n   @app.route('/api/v1/generate-voiceover', methods=['POST'])\n   def generate_voiceover():\n       data = request.json\n       segment_id = data.get('segment_id')\n       voice_id = data.get('voice_id', 'default_voice_id')\n       \n       if not segment_id:\n           return jsonify({'error': 'Segment ID is required'}), 400\n           \n       # Get segment from Airtable\n       segment = SegmentModel().get(segment_id)\n       if not segment:\n           return jsonify({'error': 'Segment not found'}), 404\n           \n       # Update segment with voice ID\n       SegmentModel().update(segment_id, {'Voice ID': voice_id, 'Status': 'generating_voice'})\n       \n       # Generate webhook URL for callback\n       webhook_url = f\"{config.BASE_URL}/webhooks/elevenlabs?segment_id={segment_id}\"\n       \n       # Request voice generation\n       elevenlabs = ElevenLabsService(config.ELEVENLABS_API_KEY)\n       result = elevenlabs.generate_voice(segment['fields']['Text'], voice_id, webhook_url)\n       \n       # Create job record in Airtable\n       job = JobModel().create({\n           'Job ID': str(uuid.uuid4()),\n           'Type': 'voiceover_generation',\n           'Status': 'processing',\n           'Related Segment': [segment_id],\n           'External Job ID': result.get('job_id'),\n           'Webhook URL': webhook_url,\n           'Timestamps': json.dumps({'created': datetime.now().isoformat()})\n       })\n       \n       return jsonify({\n           'segment_id': segment_id,\n           'job_id': job['fields']['Job ID'],\n           'status': 'processing'\n       })\n   ```\n2. Implement input validation and error handling\n3. Add logging for all operations\n4. Implement rate limiting\n5. Add support for synchronous generation for short segments",
+      "testStrategy": "Test API with valid and invalid requests. Verify correct HTTP status codes are returned. Test with various segment IDs and voice options. Verify job records are correctly created in Airtable. Test error handling for ElevenLabs API failures.",
+      "priority": "high",
+      "dependencies": [
+        3,
+        6
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 8,
+      "title": "Implement ElevenLabs Webhook Handler",
+      "description": "Create the webhook endpoint to handle callbacks from ElevenLabs when voice generation is complete.",
+      "details": "1. Create Flask route for ElevenLabs webhooks:\n   ```python\n   @app.route('/webhooks/elevenlabs', methods=['POST'])\n   def elevenlabs_webhook():\n       # Log raw webhook payload\n       payload = request.json\n       segment_id = request.args.get('segment_id')\n       \n       # Create webhook event record\n       event = WebhookEventModel().create({\n           'Event ID': str(uuid.uuid4()),\n           'Service': 'ElevenLabs',\n           'Endpoint': '/webhooks/elevenlabs',\n           'Raw Payload': json.dumps(payload),\n           'Processed': False,\n           'Success': None,\n           'Timestamp': datetime.now().isoformat()\n       })\n       \n       try:\n           # Find related job\n           jobs = JobModel().find({\n               'Related Segment': [segment_id],\n               'Type': 'voiceover_generation',\n               'Status': 'processing'\n           })\n           \n           if not jobs:\n               raise Exception(f\"No matching job found for segment {segment_id}\")\n               \n           job = jobs[0]\n           \n           # Process webhook payload\n           if payload.get('status') == 'completed':\n               # Get audio URL from payload\n               audio_url = payload.get('output', {}).get('url')\n               \n               if not audio_url:\n                   raise Exception(\"No audio URL in webhook payload\")\n                   \n               # Download audio file\n               audio_response = requests.get(audio_url)\n               audio_response.raise_for_status()\n               \n               # Upload to NCA Toolkit for storage\n               nca = NCAToolkitService(config.NCA_API_KEY)\n               audio_file = nca.upload_file(audio_response.content, 'audio/mpeg', f\"voiceover_{segment_id}.mp3\")\n               \n               # Update segment with voiceover file\n               SegmentModel().update(segment_id, {\n                   'Voiceover': audio_file['url'],\n                   'Status': 'voiceover_ready'\n               })\n               \n               # Update job status\n               JobModel().update(job['id'], {\n                   'Status': 'completed',\n                   'Timestamps': json.dumps({\n                       **json.loads(job['fields'].get('Timestamps', '{}')),\n                       'completed': datetime.now().isoformat()\n                   })\n               })\n               \n               # Update webhook event\n               WebhookEventModel().update(event['id'], {\n                   'Processed': True,\n                   'Success': True,\n                   'Related Job': [job['id']]\n               })\n               \n               return jsonify({'status': 'success'})\n           else:\n               # Handle error or other statuses\n               error_message = payload.get('error', {}).get('message', 'Unknown error')\n               \n               # Update job with error\n               JobModel().update(job['id'], {\n                   'Status': 'failed',\n                   'Error Details': error_message,\n                   'Timestamps': json.dumps({\n                       **json.loads(job['fields'].get('Timestamps', '{}')),\n                       'failed': datetime.now().isoformat()\n                   })\n               })\n               \n               # Update segment status\n               SegmentModel().update(segment_id, {'Status': 'voiceover_failed'})\n               \n               # Update webhook event\n               WebhookEventModel().update(event['id'], {\n                   'Processed': True,\n                   'Success': False,\n                   'Related Job': [job['id']]\n               })\n               \n               return jsonify({'status': 'error', 'message': error_message})\n               \n       except Exception as e:\n           # Log error and update webhook event\n           logger.error(f\"Error processing ElevenLabs webhook: {str(e)}\")\n           WebhookEventModel().update(event['id'], {\n               'Processed': True,\n               'Success': False,\n               'Error Details': str(e)\n           })\n           return jsonify({'status': 'error', 'message': str(e)}), 500\n   ```\n2. Implement webhook signature validation\n3. Add comprehensive error handling\n4. Implement retry logic for transient failures\n5. Add detailed logging for debugging",
+      "testStrategy": "Test with sample webhook payloads for successful and failed voice generation. Verify correct handling of various webhook formats. Test error scenarios and recovery. Verify all data is correctly updated in Airtable. Test webhook signature validation.",
+      "priority": "high",
+      "dependencies": [
+        3,
+        6,
+        7
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 9,
+      "title": "Implement NCA Toolkit Integration Service",
+      "description": "Create a service to interact with the NCA Toolkit for media processing, file storage, and FFmpeg operations.",
+      "details": "1. Create NCAToolkitService class:\n   ```python\n   class NCAToolkitService:\n       def __init__(self, api_key):\n           self.api_key = api_key\n           self.base_url = 'https://api.ncatoolkit.com/v1'\n           \n       def upload_file(self, file_content, content_type, filename):\n           # Upload file to NCA Toolkit (which stores in DO Spaces)\n           response = requests.post(\n               f\"{self.base_url}/files/upload\",\n               files={'file': (filename, file_content, content_type)},\n               headers={'Authorization': f\"Bearer {self.api_key}\"}\n           )\n           response.raise_for_status()\n           return response.json()\n           \n       def combine_audio_video(self, video_url, audio_url, output_filename, webhook_url=None):\n           # Request media combination\n           payload = {\n               'video_url': video_url,\n               'audio_url': audio_url,\n               'output_filename': output_filename\n           }\n           \n           if webhook_url:\n               payload['webhook_url'] = webhook_url\n               \n           response = requests.post(\n               f\"{self.base_url}/media/combine\",\n               json=payload,\n               headers={'Authorization': f\"Bearer {self.api_key}\"}\n           )\n           response.raise_for_status()\n           return response.json()\n           \n       def concatenate_videos(self, video_urls, output_filename, webhook_url=None):\n           # Request video concatenation\n           payload = {\n               'video_urls': video_urls,\n               'output_filename': output_filename\n           }\n           \n           if webhook_url:\n               payload['webhook_url'] = webhook_url\n               \n           response = requests.post(\n               f\"{self.base_url}/media/concatenate\",\n               json=payload,\n               headers={'Authorization': f\"Bearer {self.api_key}\"}\n           )\n           response.raise_for_status()\n           return response.json()\n           \n       def add_background_music(self, video_url, music_url, output_filename, volume_ratio=0.2, webhook_url=None):\n           # Request adding background music\n           payload = {\n               'video_url': video_url,\n               'music_url': music_url,\n               'output_filename': output_filename,\n               'volume_ratio': volume_ratio\n           }\n           \n           if webhook_url:\n               payload['webhook_url'] = webhook_url\n               \n           response = requests.post(\n               f\"{self.base_url}/media/add-music\",\n               json=payload,\n               headers={'Authorization': f\"Bearer {self.api_key}\"}\n           )\n           response.raise_for_status()\n           return response.json()\n   ```\n2. Implement retry logic for API failures\n3. Add support for various media formats and options\n4. Implement webhook URL generation for async callbacks\n5. Add detailed error handling and logging",
+      "testStrategy": "Test file uploads with various file types and sizes. Test media combination with sample audio and video files. Test video concatenation with multiple input files. Test adding background music with different volume ratios. Mock NCA Toolkit API responses for unit tests. Verify error handling and retry logic.",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 10,
+      "title": "Implement Combine Segment Media API Endpoint",
+      "description": "Create the API endpoint for combining background videos with voiceovers for individual segments.",
+      "details": "1. Create Flask route for combining segment media:\n   ```python\n   @app.route('/api/v1/combine-segment-media', methods=['POST'])\n   def combine_segment_media():\n       data = request.json\n       segment_id = data.get('segment_id')\n       base_video_url = data.get('base_video_url')\n       \n       if not segment_id:\n           return jsonify({'error': 'Segment ID is required'}), 400\n           \n       if not base_video_url:\n           return jsonify({'error': 'Base video URL is required'}), 400\n           \n       # Get segment from Airtable\n       segment = SegmentModel().get(segment_id)\n       if not segment:\n           return jsonify({'error': 'Segment not found'}), 404\n           \n       # Check if voiceover is ready\n       if segment['fields'].get('Status') != 'voiceover_ready':\n           return jsonify({'error': 'Voiceover not ready for this segment'}), 400\n           \n       voiceover_url = segment['fields'].get('Voiceover')\n       if not voiceover_url:\n           return jsonify({'error': 'Voiceover URL not found'}), 400\n           \n       # Update segment with base video URL and status\n       SegmentModel().update(segment_id, {\n           'Base Video': base_video_url,\n           'Status': 'combining_media'\n       })\n       \n       # Generate webhook URL for callback\n       webhook_url = f\"{config.BASE_URL}/webhooks/nca-toolkit?segment_id={segment_id}&operation=combine\"\n       \n       # Request media combination\n       nca = NCAToolkitService(config.NCA_API_KEY)\n       result = nca.combine_audio_video(\n           base_video_url,\n           voiceover_url,\n           f\"segment_{segment_id}_combined.mp4\",\n           webhook_url\n       )\n       \n       # Create job record in Airtable\n       job = JobModel().create({\n           'Job ID': str(uuid.uuid4()),\n           'Type': 'media_combination',\n           'Status': 'processing',\n           'Related Segment': [segment_id],\n           'External Job ID': result.get('job_id'),\n           'Webhook URL': webhook_url,\n           'Timestamps': json.dumps({'created': datetime.now().isoformat()})\n       })\n       \n       return jsonify({\n           'segment_id': segment_id,\n           'job_id': job['fields']['Job ID'],\n           'status': 'processing'\n       })\n   ```\n2. Implement input validation and error handling\n3. Add logging for all operations\n4. Implement rate limiting\n5. Add support for custom video formats and options",
+      "testStrategy": "Test API with valid and invalid requests. Verify correct HTTP status codes are returned. Test with various segment IDs and video URLs. Verify job records are correctly created in Airtable. Test error handling for NCA Toolkit API failures.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        8,
+        9
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 11,
+      "title": "Implement NCA Toolkit Webhook Handler",
+      "description": "Create the webhook endpoint to handle callbacks from NCA Toolkit for various media processing operations.",
+      "details": "1. Create Flask route for NCA Toolkit webhooks:\n   ```python\n   @app.route('/webhooks/nca-toolkit', methods=['POST'])\n   def nca_toolkit_webhook():\n       # Log raw webhook payload\n       payload = request.json\n       segment_id = request.args.get('segment_id')\n       operation = request.args.get('operation')\n       video_id = request.args.get('video_id')\n       \n       # Create webhook event record\n       event = WebhookEventModel().create({\n           'Event ID': str(uuid.uuid4()),\n           'Service': 'NCA Toolkit',\n           'Endpoint': '/webhooks/nca-toolkit',\n           'Raw Payload': json.dumps(payload),\n           'Processed': False,\n           'Success': None,\n           'Timestamp': datetime.now().isoformat()\n       })\n       \n       try:\n           # Find related job based on operation type\n           job_type = None\n           related_id = None\n           \n           if operation == 'combine' and segment_id:\n               job_type = 'media_combination'\n               related_id = segment_id\n           elif operation == 'concatenate' and video_id:\n               job_type = 'video_concatenation'\n               related_id = video_id\n           elif operation == 'add_music' and video_id:\n               job_type = 'music_addition'\n               related_id = video_id\n           else:\n               raise Exception(f\"Invalid operation or missing ID: {operation}\")\n               \n           # Find job\n           jobs = JobModel().find({\n               'Type': job_type,\n               'Status': 'processing'\n           })\n           \n           matching_jobs = []\n           for job in jobs:\n               if job_type == 'media_combination' and segment_id in job['fields'].get('Related Segment', []):\n                   matching_jobs.append(job)\n               elif job_type in ['video_concatenation', 'music_addition'] and video_id in job['fields'].get('Related Video', []):\n                   matching_jobs.append(job)\n           \n           if not matching_jobs:\n               raise Exception(f\"No matching job found for {operation} on {related_id}\")\n               \n           job = matching_jobs[0]\n           \n           # Process webhook payload\n           if payload.get('status') == 'completed':\n               # Get output URL from payload\n               output_url = payload.get('output_url')\n               \n               if not output_url:\n                   raise Exception(\"No output URL in webhook payload\")\n                   \n               # Update record based on operation type\n               if operation == 'combine':\n                   # Update segment with combined video\n                   SegmentModel().update(segment_id, {\n                       'Combined': output_url,\n                       'Status': 'combined'\n                   })\n               elif operation == 'concatenate':\n                   # Update video with combined segments video\n                   VideoModel().update(video_id, {\n                       'Combined Segments Video': output_url,\n                       'Status': 'segments_combined'\n                   })\n               elif operation == 'add_music':\n                   # Update video with final video\n                   VideoModel().update(video_id, {\n                       'Final Video': output_url,\n                       'Status': 'completed'\n                   })\n               \n               # Update job status\n               JobModel().update(job['id'], {\n                   'Status': 'completed',\n                   'Timestamps': json.dumps({\n                       **json.loads(job['fields'].get('Timestamps', '{}')),\n                       'completed': datetime.now().isoformat()\n                   })\n               })\n               \n               # Update webhook event\n               WebhookEventModel().update(event['id'], {\n                   'Processed': True,\n                   'Success': True,\n                   'Related Job': [job['id']]\n               })\n               \n               return jsonify({'status': 'success'})\n           else:\n               # Handle error or other statuses\n               error_message = payload.get('error', 'Unknown error')\n               \n               # Update job with error\n               JobModel().update(job['id'], {\n                   'Status': 'failed',\n                   'Error Details': error_message,\n                   'Timestamps': json.dumps({\n                       **json.loads(job['fields'].get('Timestamps', '{}')),\n                       'failed': datetime.now().isoformat()\n                   })\n               })\n               \n               # Update record status based on operation\n               if operation == 'combine':\n                   SegmentModel().update(segment_id, {'Status': 'combination_failed'})\n               elif operation in ['concatenate', 'add_music']:\n                   status = 'concatenation_failed' if operation == 'concatenate' else 'music_addition_failed'\n                   VideoModel().update(video_id, {'Status': status, 'Error Details': error_message})\n               \n               # Update webhook event\n               WebhookEventModel().update(event['id'], {\n                   'Processed': True,\n                   'Success': False,\n                   'Related Job': [job['id']]\n               })\n               \n               return jsonify({'status': 'error', 'message': error_message})\n               \n       except Exception as e:\n           # Log error and update webhook event\n           logger.error(f\"Error processing NCA Toolkit webhook: {str(e)}\")\n           WebhookEventModel().update(event['id'], {\n               'Processed': True,\n               'Success': False,\n               'Error Details': str(e)\n           })\n           return jsonify({'status': 'error', 'message': str(e)}), 500\n   ```\n2. Implement webhook signature validation\n3. Add comprehensive error handling\n4. Implement retry logic for transient failures\n5. Add detailed logging for debugging",
+      "testStrategy": "Test with sample webhook payloads for different operations (combine, concatenate, add_music). Verify correct handling of various webhook formats. Test error scenarios and recovery. Verify all data is correctly updated in Airtable. Test webhook signature validation.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        9,
+        10
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 12,
+      "title": "Implement Combine All Segments API Endpoint",
+      "description": "Create the API endpoint for concatenating all segment videos into a single video.",
+      "details": "1. Create Flask route for combining all segments:\n   ```python\n   @app.route('/api/v1/combine-all-segments', methods=['POST'])\n   def combine_all_segments():\n       data = request.json\n       video_id = data.get('video_id')\n       \n       if not video_id:\n           return jsonify({'error': 'Video ID is required'}), 400\n           \n       # Get video from Airtable\n       video = VideoModel().get(video_id)\n       if not video:\n           return jsonify({'error': 'Video not found'}), 404\n           \n       # Get all segments for this video\n       segments = SegmentModel().find({'Video': [video_id]})\n       \n       # Check if all segments are combined\n       uncombined_segments = [s for s in segments if s['fields'].get('Status') != 'combined']\n       if uncombined_segments:\n           segment_ids = [s['id'] for s in uncombined_segments]\n           return jsonify({\n               'error': 'Not all segments are combined',\n               'uncombined_segments': segment_ids\n           }), 400\n           \n       # Sort segments by order\n       segments.sort(key=lambda s: s['fields'].get('Order', 0))\n       \n       # Get combined video URLs\n       video_urls = [s['fields'].get('Combined') for s in segments]\n       \n       # Update video status\n       VideoModel().update(video_id, {'Status': 'concatenating_segments'})\n       \n       # Generate webhook URL for callback\n       webhook_url = f\"{config.BASE_URL}/webhooks/nca-toolkit?video_id={video_id}&operation=concatenate\"\n       \n       # Request video concatenation\n       nca = NCAToolkitService(config.NCA_API_KEY)\n       result = nca.concatenate_videos(\n           video_urls,\n           f\"video_{video_id}_combined.mp4\",\n           webhook_url\n       )\n       \n       # Create job record in Airtable\n       job = JobModel().create({\n           'Job ID': str(uuid.uuid4()),\n           'Type': 'video_concatenation',\n           'Status': 'processing',\n           'Related Video': [video_id],\n           'External Job ID': result.get('job_id'),\n           'Webhook URL': webhook_url,\n           'Timestamps': json.dumps({'created': datetime.now().isoformat()})\n       })\n       \n       return jsonify({\n           'video_id': video_id,\n           'job_id': job['fields']['Job ID'],\n           'status': 'processing',\n           'segment_count': len(segments)\n       })\n   ```\n2. Implement input validation and error handling\n3. Add logging for all operations\n4. Implement rate limiting\n5. Add support for custom video formats and options",
+      "testStrategy": "Test API with valid and invalid requests. Verify correct HTTP status codes are returned. Test with videos having different numbers of segments. Verify job records are correctly created in Airtable. Test error handling for NCA Toolkit API failures. Test with segments in different states.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        9,
+        11
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 13,
+      "title": "Implement GoAPI Integration Service",
+      "description": "Create a service to interact with the GoAPI for generating AI background music.",
+      "details": "1. Create GoAPIService class:\n   ```python\n   class GoAPIService:\n       def __init__(self, api_key):\n           self.api_key = api_key\n           self.base_url = 'https://api.goapi.io/v1'\n           \n       def generate_music(self, prompt, duration=180, webhook_url=None):\n           # Request music generation\n           payload = {\n               'prompt': prompt,\n               'duration': duration,\n               'model': 'suno-v3'\n           }\n           \n           if webhook_url:\n               payload['webhook_url'] = webhook_url\n               \n           response = requests.post(\n               f\"{self.base_url}/music/generate\",\n               json=payload,\n               headers={'Authorization': f\"Bearer {self.api_key}\"}\n           )\n           response.raise_for_status()\n           return response.json()\n           \n       def get_music_status(self, job_id):\n           # Check status of music generation\n           response = requests.get(\n               f\"{self.base_url}/music/status/{job_id}\",\n               headers={'Authorization': f\"Bearer {self.api_key}\"}\n           )\n           response.raise_for_status()\n           return response.json()\n   ```\n2. Implement retry logic for API failures\n3. Add support for different music generation parameters\n4. Implement webhook URL generation for async callbacks\n5. Add detailed error handling and logging",
+      "testStrategy": "Test with sample prompts to verify music generation. Mock GoAPI responses for unit tests. Test both synchronous and asynchronous generation modes. Verify error handling and retry logic. Test with various prompts and duration parameters.",
+      "priority": "medium",
+      "dependencies": [
+        2
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 14,
+      "title": "Implement Generate and Add Music API Endpoint",
+      "description": "Create the API endpoint for generating background music and adding it to the final video.",
+      "details": "1. Create Flask route for generating and adding music:\n   ```python\n   @app.route('/api/v1/generate-and-add-music', methods=['POST'])\n   def generate_and_add_music():\n       data = request.json\n       video_id = data.get('video_id')\n       music_prompt = data.get('music_prompt', 'Calm, instrumental background music')\n       \n       if not video_id:\n           return jsonify({'error': 'Video ID is required'}), 400\n           \n       # Get video from Airtable\n       video = VideoModel().get(video_id)\n       if not video:\n           return jsonify({'error': 'Video not found'}), 404\n           \n       # Check if segments are combined\n       if video['fields'].get('Status') != 'segments_combined':\n           return jsonify({'error': 'Segments not combined yet'}), 400\n           \n       combined_video_url = video['fields'].get('Combined Segments Video')\n       if not combined_video_url:\n           return jsonify({'error': 'Combined video URL not found'}), 400\n           \n       # Update video with music prompt and status\n       VideoModel().update(video_id, {\n           'Music Prompt': music_prompt,\n           'Status': 'generating_music'\n       })\n       \n       # Generate webhook URL for callback\n       webhook_url = f\"{config.BASE_URL}/webhooks/goapi?video_id={video_id}\"\n       \n       # Request music generation\n       goapi = GoAPIService(config.GOAPI_API_KEY)\n       result = goapi.generate_music(music_prompt, webhook_url=webhook_url)\n       \n       # Create job record in Airtable\n       job = JobModel().create({\n           'Job ID': str(uuid.uuid4()),\n           'Type': 'music_generation',\n           'Status': 'processing',\n           'Related Video': [video_id],\n           'External Job ID': result.get('job_id'),\n           'Webhook URL': webhook_url,\n           'Timestamps': json.dumps({'created': datetime.now().isoformat()})\n       })\n       \n       return jsonify({\n           'video_id': video_id,\n           'job_id': job['fields']['Job ID'],\n           'status': 'processing'\n       })\n   ```\n2. Implement input validation and error handling\n3. Add logging for all operations\n4. Implement rate limiting\n5. Add support for custom music parameters",
+      "testStrategy": "Test API with valid and invalid requests. Verify correct HTTP status codes are returned. Test with various video IDs and music prompts. Verify job records are correctly created in Airtable. Test error handling for GoAPI failures.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        9,
+        12,
+        13
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 15,
+      "title": "Implement GoAPI Webhook Handler",
+      "description": "Create the webhook endpoint to handle callbacks from GoAPI when music generation is complete.",
+      "details": "1. Create Flask route for GoAPI webhooks:\n   ```python\n   @app.route('/webhooks/goapi', methods=['POST'])\n   def goapi_webhook():\n       # Log raw webhook payload\n       payload = request.json\n       video_id = request.args.get('video_id')\n       \n       # Create webhook event record\n       event = WebhookEventModel().create({\n           'Event ID': str(uuid.uuid4()),\n           'Service': 'GoAPI',\n           'Endpoint': '/webhooks/goapi',\n           'Raw Payload': json.dumps(payload),\n           'Processed': False,\n           'Success': None,\n           'Timestamp': datetime.now().isoformat()\n       })\n       \n       try:\n           # Find related job\n           jobs = JobModel().find({\n               'Related Video': [video_id],\n               'Type': 'music_generation',\n               'Status': 'processing'\n           })\n           \n           if not jobs:\n               raise Exception(f\"No matching job found for video {video_id}\")\n               \n           job = jobs[0]\n           \n           # Process webhook payload\n           if payload.get('status') == 'completed':\n               # Get music URL from payload\n               music_url = payload.get('output', {}).get('url')\n               \n               if not music_url:\n                   raise Exception(\"No music URL in webhook payload\")\n                   \n               # Update video with music URL\n               video = VideoModel().get(video_id)\n               combined_video_url = video['fields'].get('Combined Segments Video')\n               \n               # Update video with music URL\n               VideoModel().update(video_id, {\n                   'Music': music_url,\n                   'Status': 'adding_music'\n               })\n               \n               # Generate webhook URL for callback\n               webhook_url = f\"{config.BASE_URL}/webhooks/nca-toolkit?video_id={video_id}&operation=add_music\"\n               \n               # Request adding music to video\n               nca = NCAToolkitService(config.NCA_API_KEY)\n               add_music_result = nca.add_background_music(\n                   combined_video_url,\n                   music_url,\n                   f\"video_{video_id}_final.mp4\",\n                   volume_ratio=0.2,\n                   webhook_url=webhook_url\n               )\n               \n               # Create job record for adding music\n               music_job = JobModel().create({\n                   'Job ID': str(uuid.uuid4()),\n                   'Type': 'music_addition',\n                   'Status': 'processing',\n                   'Related Video': [video_id],\n                   'External Job ID': add_music_result.get('job_id'),\n                   'Webhook URL': webhook_url,\n                   'Timestamps': json.dumps({'created': datetime.now().isoformat()})\n               })\n               \n               # Update music generation job status\n               JobModel().update(job['id'], {\n                   'Status': 'completed',\n                   'Timestamps': json.dumps({\n                       **json.loads(job['fields'].get('Timestamps', '{}')),\n                       'completed': datetime.now().isoformat()\n                   })\n               })\n               \n               # Update webhook event\n               WebhookEventModel().update(event['id'], {\n                   'Processed': True,\n                   'Success': True,\n                   'Related Job': [job['id']]\n               })\n               \n               return jsonify({'status': 'success'})\n           else:\n               # Handle error or other statuses\n               error_message = payload.get('error', {}).get('message', 'Unknown error')\n               \n               # Update job with error\n               JobModel().update(job['id'], {\n                   'Status': 'failed',\n                   'Error Details': error_message,\n                   'Timestamps': json.dumps({\n                       **json.loads(job['fields'].get('Timestamps', '{}')),\n                       'failed': datetime.now().isoformat()\n                   })\n               })\n               \n               # Update video status\n               VideoModel().update(video_id, {\n                   'Status': 'music_generation_failed',\n                   'Error Details': error_message\n               })\n               \n               # Update webhook event\n               WebhookEventModel().update(event['id'], {\n                   'Processed': True,\n                   'Success': False,\n                   'Related Job': [job['id']]\n               })\n               \n               return jsonify({'status': 'error', 'message': error_message})\n               \n       except Exception as e:\n           # Log error and update webhook event\n           logger.error(f\"Error processing GoAPI webhook: {str(e)}\")\n           WebhookEventModel().update(event['id'], {\n               'Processed': True,\n               'Success': False,\n               'Error Details': str(e)\n           })\n           return jsonify({'status': 'error', 'message': str(e)}), 500\n   ```\n2. Implement webhook signature validation\n3. Add comprehensive error handling\n4. Implement retry logic for transient failures\n5. Add detailed logging for debugging",
+      "testStrategy": "Test with sample webhook payloads for successful and failed music generation. Verify correct handling of various webhook formats. Test error scenarios and recovery. Verify all data is correctly updated in Airtable. Test webhook signature validation.",
+      "priority": "medium",
+      "dependencies": [
+        3,
+        13,
+        14
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 16,
+      "title": "Implement Job Status API Endpoint",
+      "description": "Create the API endpoint for checking the status of a job.",
+      "details": "1. Create Flask route for checking job status:\n   ```python\n   @app.route('/api/v1/jobs/<job_id>', methods=['GET'])\n   def get_job_status(job_id):\n       # Find job by ID\n       jobs = JobModel().find({'Job ID': job_id})\n       \n       if not jobs:\n           return jsonify({'error': 'Job not found'}), 404\n           \n       job = jobs[0]\n       \n       # Get related entity (video or segment)\n       related_entity = None\n       entity_type = None\n       \n       if 'Related Video' in job['fields'] and job['fields']['Related Video']:\n           video_id = job['fields']['Related Video'][0]\n           related_entity = VideoModel().get(video_id)\n           entity_type = 'video'\n       elif 'Related Segment' in job['fields'] and job['fields']['Related Segment']:\n           segment_id = job['fields']['Related Segment'][0]\n           related_entity = SegmentModel().get(segment_id)\n           entity_type = 'segment'\n       \n       # Build response\n       response = {\n           'job_id': job['fields']['Job ID'],\n           'type': job['fields']['Type'],\n           'status': job['fields']['Status'],\n           'created_at': json.loads(job['fields'].get('Timestamps', '{}')).get('created')\n       }\n       \n       if job['fields'].get('Error Details'):\n           response['error'] = job['fields']['Error Details']\n           \n       if related_entity:\n           response['entity_type'] = entity_type\n           response['entity_id'] = related_entity['id']\n           response['entity_status'] = related_entity['fields'].get('Status')\n       \n       return jsonify(response)\n   ```\n2. Implement error handling\n3. Add logging for all operations\n4. Add support for detailed job information\n5. Implement caching for frequent status checks",
+      "testStrategy": "Test API with valid and invalid job IDs. Verify correct HTTP status codes are returned. Test with various job types and statuses. Verify all job information is correctly returned. Test error handling for Airtable API failures.",
+      "priority": "low",
+      "dependencies": [
+        3
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 17,
+      "title": "Implement Health Check Endpoint",
+      "description": "Create a health check endpoint to monitor system status and external service connectivity.",
+      "details": "1. Create Flask route for health check:\n   ```python\n   @app.route('/health', methods=['GET'])\n   def health_check():\n       health = {\n           'status': 'ok',\n           'timestamp': datetime.now().isoformat(),\n           'version': config.VERSION,\n           'services': {}\n       }\n       \n       # Check Airtable connectivity\n       try:\n           airtable_client = AirtableClient(config.AIRTABLE_API_KEY)\n           airtable_client.ping()\n           health['services']['airtable'] = {'status': 'ok'}\n       except Exception as e:\n           health['services']['airtable'] = {\n               'status': 'error',\n               'message': str(e)\n           }\n           health['status'] = 'degraded'\n       \n       # Check NCA Toolkit connectivity\n       try:\n           nca = NCAToolkitService(config.NCA_API_KEY)\n           nca.ping()\n           health['services']['nca_toolkit'] = {'status': 'ok'}\n       except Exception as e:\n           health['services']['nca_toolkit'] = {\n               'status': 'error',\n               'message': str(e)\n           }\n           health['status'] = 'degraded'\n       \n       # Check ElevenLabs connectivity\n       try:\n           elevenlabs = ElevenLabsService(config.ELEVENLABS_API_KEY)\n           elevenlabs.ping()\n           health['services']['elevenlabs'] = {'status': 'ok'}\n       except Exception as e:\n           health['services']['elevenlabs'] = {\n               'status': 'error',\n               'message': str(e)\n           }\n           health['status'] = 'degraded'\n       \n       # Check GoAPI connectivity\n       try:\n           goapi = GoAPIService(config.GOAPI_API_KEY)\n           goapi.ping()\n           health['services']['goapi'] = {'status': 'ok'}\n       except Exception as e:\n           health['services']['goapi'] = {\n               'status': 'error',\n               'message': str(e)\n           }\n           health['status'] = 'degraded'\n       \n       # Return appropriate status code\n       status_code = 200 if health['status'] == 'ok' else 500\n       return jsonify(health), status_code\n   ```\n2. Implement detailed service checks\n3. Add response time metrics\n4. Implement caching to prevent frequent external API calls\n5. Add system resource metrics (CPU, memory, disk)",
+      "testStrategy": "Test health check endpoint with all services available. Test with various service failures to verify degraded status. Verify correct HTTP status codes are returned. Test response time metrics. Test caching behavior.",
+      "priority": "low",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 18,
+      "title": "Implement Rate Limiting Middleware",
+      "description": "Create middleware for rate limiting API requests to prevent abuse and ensure fair usage.",
+      "details": "1. Create rate limiting middleware using Flask-Limiter:\n   ```python\n   from flask_limiter import Limiter\n   from flask_limiter.util import get_remote_address\n   \n   limiter = Limiter(\n       app,\n       key_func=get_remote_address,\n       default_limits=[\"200 per day\", \"50 per hour\"]\n   )\n   \n   # Apply specific limits to endpoints\n   @app.route('/api/v1/process-script', methods=['POST'])\n   @limiter.limit(\"10 per minute\")\n   def process_script():\n       # Existing implementation\n       pass\n   ```\n2. Implement custom key functions for API key-based rate limiting\n3. Add different rate limits for different endpoints based on resource usage\n4. Implement rate limit headers in responses\n5. Add configurable rate limits based on user tiers",
+      "testStrategy": "Test rate limiting with rapid requests to verify limits are enforced. Test with different API keys to verify per-key limits. Verify rate limit headers are included in responses. Test rate limit exceeded error responses.",
+      "priority": "low",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 19,
+      "title": "Implement Input Validation Middleware",
+      "description": "Create middleware for validating and sanitizing API input data to prevent security issues and ensure data quality.",
+      "details": "1. Create input validation using Marshmallow or Pydantic:\n   ```python\n   from marshmallow import Schema, fields, validate, ValidationError\n   \n   class ProcessScriptSchema(Schema):\n       script = fields.String(required=True, validate=validate.Length(min=1))\n       segment_duration = fields.Integer(missing=30, validate=validate.Range(min=10, max=300))\n       name = fields.String(missing='Untitled Video')\n   \n   @app.route('/api/v1/process-script', methods=['POST'])\n   def process_script():\n       try:\n           # Validate input data\n           schema = ProcessScriptSchema()\n           data = schema.load(request.json)\n           \n           # Proceed with validated data\n           # ...\n       except ValidationError as err:\n           return jsonify({'error': 'Validation error', 'details': err.messages}), 400\n   ```\n2. Create validation schemas for all API endpoints\n3. Implement content sanitization for text inputs\n4. Add custom validators for specific data formats\n5. Implement consistent error responses for validation failures",
+      "testStrategy": "Test validation with valid and invalid input data. Verify correct HTTP status codes and error messages are returned. Test with malicious input data to verify sanitization. Test all validation rules for each endpoint.",
+      "priority": "medium",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 20,
+      "title": "Implement Comprehensive Logging System",
+      "description": "Create a logging system to track all operations, errors, and performance metrics.",
+      "details": "1. Configure Python logging with structured output:\n   ```python\n   import logging\n   import json\n   from datetime import datetime\n   \n   class JSONFormatter(logging.Formatter):\n       def format(self, record):\n           log_record = {\n               'timestamp': datetime.now().isoformat(),\n               'level': record.levelname,\n               'message': record.getMessage(),\n               'module': record.module,\n               'function': record.funcName,\n               'line': record.lineno\n           }\n           \n           if hasattr(record, 'request_id'):\n               log_record['request_id'] = record.request_id\n               \n           if record.exc_info:\n               log_record['exception'] = self.formatException(record.exc_info)\n               \n           return json.dumps(log_record)\n   \n   # Configure logger\n   logger = logging.getLogger('youtube_video_engine')\n   handler = logging.StreamHandler()\n   handler.setFormatter(JSONFormatter())\n   logger.addHandler(handler)\n   logger.setLevel(logging.INFO)\n   ```\n2. Implement request ID tracking across all operations\n3. Add performance timing for critical operations\n4. Implement log rotation and archiving\n5. Add sensitive data masking for logs",
+      "testStrategy": "Verify logs are generated for all operations. Test log format and content. Verify request IDs are consistently tracked. Test performance timing accuracy. Verify sensitive data is properly masked.",
+      "priority": "medium",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 21,
+      "title": "Implement Error Handling and Retry Logic",
+      "description": "Create a comprehensive error handling system with retry logic for transient failures.",
+      "details": "1. Implement retry decorator for API calls:\n   ```python\n   import time\n   from functools import wraps\n   \n   def retry(max_attempts=3, backoff_factor=1.5, exceptions=(Exception,)):\n       def decorator(func):\n           @wraps(func)\n           def wrapper(*args, **kwargs):\n               attempt = 0\n               while attempt < max_attempts:\n                   try:\n                       return func(*args, **kwargs)\n                   except exceptions as e:\n                       attempt += 1\n                       if attempt == max_attempts:\n                           raise\n                       wait_time = backoff_factor ** attempt\n                       logger.warning(\n                           f\"Retry {attempt}/{max_attempts} for {func.__name__} after {wait_time}s due to {str(e)}\"\n                       )\n                       time.sleep(wait_time)\n           return wrapper\n       return decorator\n   ```\n2. Apply retry logic to all external API calls\n3. Implement circuit breaker pattern for failing services\n4. Create custom exception hierarchy for different error types\n5. Add detailed error reporting and tracking",
+      "testStrategy": "Test retry logic with simulated failures. Verify correct number of retries and backoff timing. Test circuit breaker behavior. Verify different error types are handled appropriately. Test error reporting and tracking.",
+      "priority": "high",
+      "dependencies": [
+        1,
+        20
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 22,
+      "title": "Implement Webhook Signature Validation",
+      "description": "Create a system to validate webhook signatures to ensure authenticity of incoming webhook requests.",
+      "details": "1. Implement webhook signature validation:\n   ```python\n   import hmac\n   import hashlib\n   \n   def validate_webhook_signature(request, secret, signature_header):\n       # Get signature from header\n       signature = request.headers.get(signature_header)\n       if not signature:\n           return False\n           \n       # Calculate expected signature\n       payload = request.get_data()\n       expected_signature = hmac.new(\n           secret.encode(),\n           payload,\n           hashlib.sha256\n       ).hexdigest()\n       \n       # Compare signatures using constant-time comparison\n       return hmac.compare_digest(signature, expected_signature)\n   \n   # Apply to webhook endpoints\n   @app.route('/webhooks/elevenlabs', methods=['POST'])\n   def elevenlabs_webhook():\n       # Validate signature\n       if not validate_webhook_signature(\n           request,\n           config.ELEVENLABS_WEBHOOK_SECRET,\n           'X-Elevenlabs-Signature'\n       ):\n           return jsonify({'error': 'Invalid signature'}), 401\n           \n       # Proceed with webhook handling\n       # ...\n   ```\n2. Implement signature validation for all webhook endpoints\n3. Add timestamp validation to prevent replay attacks\n4. Implement nonce validation for additional security\n5. Add detailed logging for signature validation failures",
+      "testStrategy": "Test signature validation with valid and invalid signatures. Verify correct HTTP status codes are returned for invalid signatures. Test with missing signature headers. Test timestamp validation for expired requests. Test nonce validation.",
+      "priority": "medium",
+      "dependencies": [
+        8,
+        11,
+        15
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 23,
+      "title": "Implement Fly.io Deployment Configuration",
+      "description": "Create deployment configuration for Fly.io to host the application in production.",
+      "details": "1. Create fly.toml configuration file:\n   ```toml\n   app = \"youtube-video-engine\"\n   \n   [build]\n     dockerfile = \"Dockerfile\"\n   \n   [env]\n     PORT = \"8080\"\n   \n   [http_service]\n     internal_port = 8080\n     force_https = true\n     auto_stop_machines = true\n     auto_start_machines = true\n     min_machines_running = 1\n     processes = [\"app\"]\n   \n   [[http_service.checks]]\n     grace_period = \"10s\"\n     interval = \"30s\"\n     method = \"GET\"\n     path = \"/health\"\n     protocol = \"http\"\n     timeout = \"5s\"\n   ```\n2. Configure secrets management for API keys\n3. Set up environment-specific configurations\n4. Configure scaling rules based on load\n5. Set up monitoring and alerting",
+      "testStrategy": "Test deployment to a staging environment on Fly.io. Verify application starts correctly. Test scaling behavior. Verify secrets are correctly loaded. Test health check endpoint is working correctly. Verify HTTPS is enforced.",
+      "priority": "low",
+      "dependencies": [
+        1
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 24,
+      "title": "Implement Comprehensive Integration Tests",
+      "description": "Create integration tests to verify the entire video production pipeline works correctly.",
+      "details": "1. Create integration test suite using pytest:\n   ```python\n   import pytest\n   import requests\n   import time\n   \n   BASE_URL = 'http://localhost:8080'\n   \n   def test_full_video_production_pipeline():\n       # 1. Process script\n       script_response = requests.post(\n           f\"{BASE_URL}/api/v1/process-script\",\n           json={\n               'name': 'Test Video',\n               'script': 'This is a test script for integration testing.',\n               'segment_duration': 30\n           }\n       )\n       assert script_response.status_code == 200\n       video_id = script_response.json()['video_id']\n       \n       # 2. Generate voiceovers for all segments\n       segments_response = requests.get(f\"{BASE_URL}/api/v1/video/{video_id}/segments\")\n       assert segments_response.status_code == 200\n       segments = segments_response.json()['segments']\n       \n       for segment in segments:\n           voiceover_response = requests.post(\n               f\"{BASE_URL}/api/v1/generate-voiceover\",\n               json={\n                   'segment_id': segment['id'],\n                   'voice_id': 'default_voice_id'\n               }\n           )\n           assert voiceover_response.status_code == 200\n           \n           # Wait for voiceover to complete\n           job_id = voiceover_response.json()['job_id']\n           wait_for_job_completion(job_id)\n       \n       # 3. Combine media for all segments\n       for segment in segments:\n           combine_response = requests.post(\n               f\"{BASE_URL}/api/v1/combine-segment-media\",\n               json={\n                   'segment_id': segment['id'],\n                   'base_video_url': 'https://example.com/test_video.mp4'\n               }\n           )\n           assert combine_response.status_code == 200\n           \n           # Wait for combination to complete\n           job_id = combine_response.json()['job_id']\n           wait_for_job_completion(job_id)\n       \n       # 4. Combine all segments\n       combine_all_response = requests.post(\n           f\"{BASE_URL}/api/v1/combine-all-segments\",\n           json={'video_id': video_id}\n       )\n       assert combine_all_response.status_code == 200\n       \n       # Wait for concatenation to complete\n       job_id = combine_all_response.json()['job_id']\n       wait_for_job_completion(job_id)\n       \n       # 5. Generate and add music\n       music_response = requests.post(\n           f\"{BASE_URL}/api/v1/generate-and-add-music\",\n           json={\n               'video_id': video_id,\n               'music_prompt': 'Calm, instrumental background music'\n           }\n       )\n       assert music_response.status_code == 200\n       \n       # Wait for music generation and addition to complete\n       job_id = music_response.json()['job_id']\n       wait_for_job_completion(job_id)\n       \n       # 6. Verify final video is available\n       video_response = requests.get(f\"{BASE_URL}/api/v1/video/{video_id}\")\n       assert video_response.status_code == 200\n       assert video_response.json()['status'] == 'completed'\n       assert 'final_video_url' in video_response.json()\n       \n   def wait_for_job_completion(job_id, timeout=300, interval=5):\n       start_time = time.time()\n       while time.time() - start_time < timeout:\n           job_response = requests.get(f\"{BASE_URL}/api/v1/jobs/{job_id}\")\n           assert job_response.status_code == 200\n           \n           status = job_response.json()['status']\n           if status == 'completed':\n               return True\n           elif status == 'failed':\n               pytest.fail(f\"Job {job_id} failed: {job_response.json().get('error')}\")\n               \n           time.sleep(interval)\n           \n       pytest.fail(f\"Job {job_id} did not complete within {timeout} seconds\")\n   ```\n2. Create mock external services for testing\n3. Implement test fixtures for common test data\n4. Add performance tests for critical operations\n5. Implement test coverage reporting",
+      "testStrategy": "Run integration tests in a controlled environment with mock external services. Verify all steps of the video production pipeline work correctly. Test with various input scripts and configurations. Measure and verify performance metrics. Test error recovery scenarios.",
+      "priority": "medium",
+      "dependencies": [
+        5,
+        7,
+        10,
+        12,
+        14,
+        16
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 25,
+      "title": "Implement Documentation and API Reference",
+      "description": "Create comprehensive documentation and API reference for the YouTube Video Engine.",
+      "details": "1. Create API documentation using Swagger/OpenAPI:\n   ```python\n   from flask_swagger_ui import get_swaggerui_blueprint\n   \n   SWAGGER_URL = '/api/docs'\n   API_URL = '/static/swagger.json'\n   \n   swaggerui_blueprint = get_swaggerui_blueprint(\n       SWAGGER_URL,\n       API_URL,\n       config={'app_name': \"YouTube Video Engine API\"}\n   )\n   \n   app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)\n   ```\n2. Create OpenAPI specification for all endpoints\n3. Write detailed README with setup and usage instructions\n4. Create architecture documentation with diagrams\n5. Document all configuration options and environment variables",
+      "testStrategy": "Verify API documentation is accessible and accurate. Test documentation examples to ensure they work as described. Verify all endpoints are documented. Test setup instructions to ensure they are complete and accurate.",
+      "priority": "low",
+      "dependencies": [
+        1,
+        5,
+        7,
+        10,
+        12,
+        14,
+        16,
+        17
+      ],
+      "status": "pending",
+      "subtasks": []
+    }
+  ]
+}

@@ -1,0 +1,155 @@
+# Task ID: 11
+# Title: Implement NCA Toolkit Webhook Handler
+# Status: pending
+# Dependencies: 3, 9, 10
+# Priority: medium
+# Description: Create the webhook endpoint to handle callbacks from NCA Toolkit for various media processing operations.
+# Details:
+1. Create Flask route for NCA Toolkit webhooks:
+   ```python
+   @app.route('/webhooks/nca-toolkit', methods=['POST'])
+   def nca_toolkit_webhook():
+       # Log raw webhook payload
+       payload = request.json
+       segment_id = request.args.get('segment_id')
+       operation = request.args.get('operation')
+       video_id = request.args.get('video_id')
+       
+       # Create webhook event record
+       event = WebhookEventModel().create({
+           'Event ID': str(uuid.uuid4()),
+           'Service': 'NCA Toolkit',
+           'Endpoint': '/webhooks/nca-toolkit',
+           'Raw Payload': json.dumps(payload),
+           'Processed': False,
+           'Success': None,
+           'Timestamp': datetime.now().isoformat()
+       })
+       
+       try:
+           # Find related job based on operation type
+           job_type = None
+           related_id = None
+           
+           if operation == 'combine' and segment_id:
+               job_type = 'media_combination'
+               related_id = segment_id
+           elif operation == 'concatenate' and video_id:
+               job_type = 'video_concatenation'
+               related_id = video_id
+           elif operation == 'add_music' and video_id:
+               job_type = 'music_addition'
+               related_id = video_id
+           else:
+               raise Exception(f"Invalid operation or missing ID: {operation}")
+               
+           # Find job
+           jobs = JobModel().find({
+               'Type': job_type,
+               'Status': 'processing'
+           })
+           
+           matching_jobs = []
+           for job in jobs:
+               if job_type == 'media_combination' and segment_id in job['fields'].get('Related Segment', []):
+                   matching_jobs.append(job)
+               elif job_type in ['video_concatenation', 'music_addition'] and video_id in job['fields'].get('Related Video', []):
+                   matching_jobs.append(job)
+           
+           if not matching_jobs:
+               raise Exception(f"No matching job found for {operation} on {related_id}")
+               
+           job = matching_jobs[0]
+           
+           # Process webhook payload
+           if payload.get('status') == 'completed':
+               # Get output URL from payload
+               output_url = payload.get('output_url')
+               
+               if not output_url:
+                   raise Exception("No output URL in webhook payload")
+                   
+               # Update record based on operation type
+               if operation == 'combine':
+                   # Update segment with combined video
+                   SegmentModel().update(segment_id, {
+                       'Combined': output_url,
+                       'Status': 'combined'
+                   })
+               elif operation == 'concatenate':
+                   # Update video with combined segments video
+                   VideoModel().update(video_id, {
+                       'Combined Segments Video': output_url,
+                       'Status': 'segments_combined'
+                   })
+               elif operation == 'add_music':
+                   # Update video with final video
+                   VideoModel().update(video_id, {
+                       'Final Video': output_url,
+                       'Status': 'completed'
+                   })
+               
+               # Update job status
+               JobModel().update(job['id'], {
+                   'Status': 'completed',
+                   'Timestamps': json.dumps({
+                       **json.loads(job['fields'].get('Timestamps', '{}')),
+                       'completed': datetime.now().isoformat()
+                   })
+               })
+               
+               # Update webhook event
+               WebhookEventModel().update(event['id'], {
+                   'Processed': True,
+                   'Success': True,
+                   'Related Job': [job['id']]
+               })
+               
+               return jsonify({'status': 'success'})
+           else:
+               # Handle error or other statuses
+               error_message = payload.get('error', 'Unknown error')
+               
+               # Update job with error
+               JobModel().update(job['id'], {
+                   'Status': 'failed',
+                   'Error Details': error_message,
+                   'Timestamps': json.dumps({
+                       **json.loads(job['fields'].get('Timestamps', '{}')),
+                       'failed': datetime.now().isoformat()
+                   })
+               })
+               
+               # Update record status based on operation
+               if operation == 'combine':
+                   SegmentModel().update(segment_id, {'Status': 'combination_failed'})
+               elif operation in ['concatenate', 'add_music']:
+                   status = 'concatenation_failed' if operation == 'concatenate' else 'music_addition_failed'
+                   VideoModel().update(video_id, {'Status': status, 'Error Details': error_message})
+               
+               # Update webhook event
+               WebhookEventModel().update(event['id'], {
+                   'Processed': True,
+                   'Success': False,
+                   'Related Job': [job['id']]
+               })
+               
+               return jsonify({'status': 'error', 'message': error_message})
+               
+       except Exception as e:
+           # Log error and update webhook event
+           logger.error(f"Error processing NCA Toolkit webhook: {str(e)}")
+           WebhookEventModel().update(event['id'], {
+               'Processed': True,
+               'Success': False,
+               'Error Details': str(e)
+           })
+           return jsonify({'status': 'error', 'message': str(e)}), 500
+   ```
+2. Implement webhook signature validation
+3. Add comprehensive error handling
+4. Implement retry logic for transient failures
+5. Add detailed logging for debugging
+
+# Test Strategy:
+Test with sample webhook payloads for different operations (combine, concatenate, add_music). Verify correct handling of various webhook formats. Test error scenarios and recovery. Verify all data is correctly updated in Airtable. Test webhook signature validation.

@@ -1,0 +1,79 @@
+# Task ID: 12
+# Title: Implement Combine All Segments API Endpoint
+# Status: pending
+# Dependencies: 3, 9, 11
+# Priority: medium
+# Description: Create the API endpoint for concatenating all segment videos into a single video.
+# Details:
+1. Create Flask route for combining all segments:
+   ```python
+   @app.route('/api/v1/combine-all-segments', methods=['POST'])
+   def combine_all_segments():
+       data = request.json
+       video_id = data.get('video_id')
+       
+       if not video_id:
+           return jsonify({'error': 'Video ID is required'}), 400
+           
+       # Get video from Airtable
+       video = VideoModel().get(video_id)
+       if not video:
+           return jsonify({'error': 'Video not found'}), 404
+           
+       # Get all segments for this video
+       segments = SegmentModel().find({'Video': [video_id]})
+       
+       # Check if all segments are combined
+       uncombined_segments = [s for s in segments if s['fields'].get('Status') != 'combined']
+       if uncombined_segments:
+           segment_ids = [s['id'] for s in uncombined_segments]
+           return jsonify({
+               'error': 'Not all segments are combined',
+               'uncombined_segments': segment_ids
+           }), 400
+           
+       # Sort segments by order
+       segments.sort(key=lambda s: s['fields'].get('Order', 0))
+       
+       # Get combined video URLs
+       video_urls = [s['fields'].get('Combined') for s in segments]
+       
+       # Update video status
+       VideoModel().update(video_id, {'Status': 'concatenating_segments'})
+       
+       # Generate webhook URL for callback
+       webhook_url = f"{config.BASE_URL}/webhooks/nca-toolkit?video_id={video_id}&operation=concatenate"
+       
+       # Request video concatenation
+       nca = NCAToolkitService(config.NCA_API_KEY)
+       result = nca.concatenate_videos(
+           video_urls,
+           f"video_{video_id}_combined.mp4",
+           webhook_url
+       )
+       
+       # Create job record in Airtable
+       job = JobModel().create({
+           'Job ID': str(uuid.uuid4()),
+           'Type': 'video_concatenation',
+           'Status': 'processing',
+           'Related Video': [video_id],
+           'External Job ID': result.get('job_id'),
+           'Webhook URL': webhook_url,
+           'Timestamps': json.dumps({'created': datetime.now().isoformat()})
+       })
+       
+       return jsonify({
+           'video_id': video_id,
+           'job_id': job['fields']['Job ID'],
+           'status': 'processing',
+           'segment_count': len(segments)
+       })
+   ```
+2. Implement input validation and error handling
+3. Add logging for all operations
+4. Implement rate limiting
+5. Add support for custom video formats and options
+
+# Test Strategy:
+Test API with valid and invalid requests. Verify correct HTTP status codes are returned. Test with videos having different numbers of segments. Verify job records are correctly created in Airtable. Test error handling for NCA Toolkit API failures. Test with segments in different states.
