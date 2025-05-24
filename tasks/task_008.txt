@@ -1,6 +1,6 @@
 # Task ID: 8
 # Title: Implement ElevenLabs Webhook Handler
-# Status: pending
+# Status: done
 # Dependencies: 3, 6, 7
 # Priority: high
 # Description: Create the webhook endpoint to handle callbacks from ElevenLabs when voice generation is complete.

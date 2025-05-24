@@ -1,6 +1,6 @@
 # Task ID: 12
 # Title: Implement Combine All Segments API Endpoint
-# Status: pending
+# Status: done
 # Dependencies: 3, 9, 11
 # Priority: medium
 # Description: Create the API endpoint for concatenating all segment videos into a single video.

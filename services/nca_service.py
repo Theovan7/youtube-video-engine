@@ -9,6 +9,7 @@ from urllib3.util.retry import Retry
 
 from config import get_config
 from utils.logger import APILogger
+from utils.decorators import retry, rate_limit
 
 logger = logging.getLogger(__name__)
 api_logger = APILogger()
@@ -50,6 +51,7 @@ class NCAService:
             logger.error(f"NCA Toolkit health check failed: {e}")
             return False
     
+    @retry(max_attempts=3, exceptions=(requests.RequestException,))
     def upload_file(self, file_data: bytes, filename: str, 
                    content_type: str = 'application/octet-stream') -> Dict:
         """Upload a file to NCA Toolkit storage."""

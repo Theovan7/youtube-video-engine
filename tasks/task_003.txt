@@ -1,6 +1,6 @@
 # Task ID: 3
 # Title: Implement Airtable Data Models
-# Status: pending
+# Status: done
 # Dependencies: 2
 # Priority: high
 # Description: Create data models and service layer for interacting with Airtable, implementing the required tables for Videos, Segments, Jobs, and Webhook Events.

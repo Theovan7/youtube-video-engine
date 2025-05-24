@@ -34,7 +34,7 @@
       "dependencies": [
         2
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -103,7 +103,7 @@
         6,
         7
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -116,7 +116,7 @@
       "dependencies": [
         2
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -131,7 +131,7 @@
         8,
         9
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -146,7 +146,7 @@
         9,
         10
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -161,7 +161,7 @@
         9,
         11
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -174,7 +174,7 @@
       "dependencies": [
         2
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -190,7 +190,7 @@
         12,
         13
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -205,7 +205,7 @@
         13,
         14
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -218,7 +218,7 @@
       "dependencies": [
         3
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -231,7 +231,7 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -244,7 +244,7 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -257,7 +257,7 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -270,7 +270,7 @@
       "dependencies": [
         1
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {
@@ -284,7 +284,7 @@
         1,
         20
       ],
-      "status": "pending",
+      "status": "done",
       "subtasks": []
     },
     {

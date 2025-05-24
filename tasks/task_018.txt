@@ -1,6 +1,6 @@
 # Task ID: 18
 # Title: Implement Rate Limiting Middleware
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: low
 # Description: Create middleware for rate limiting API requests to prevent abuse and ensure fair usage.

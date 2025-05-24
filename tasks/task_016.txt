@@ -1,6 +1,6 @@
 # Task ID: 16
 # Title: Implement Job Status API Endpoint
-# Status: pending
+# Status: done
 # Dependencies: 3
 # Priority: low
 # Description: Create the API endpoint for checking the status of a job.
