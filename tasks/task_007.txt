@@ -1,6 +1,6 @@
 # Task ID: 7
 # Title: Implement Generate Voiceover API Endpoint
-# Status: pending
+# Status: done
 # Dependencies: 3, 6
 # Priority: high
 # Description: Create the API endpoint for generating voiceovers for segments using ElevenLabs and tracking jobs in Airtable.

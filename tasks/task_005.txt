@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Implement Process Script API Endpoint
-# Status: pending
+# Status: done
 # Dependencies: 3, 4
 # Priority: high
 # Description: Create the API endpoint for processing scripts into segments and storing them in Airtable.

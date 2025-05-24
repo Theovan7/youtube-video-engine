@@ -1,6 +1,6 @@
 # Task ID: 6
 # Title: Implement ElevenLabs Integration Service
-# Status: pending
+# Status: done
 # Dependencies: 2
 # Priority: high
 # Description: Create a service to interact with the ElevenLabs API for generating AI voiceovers from text segments.
