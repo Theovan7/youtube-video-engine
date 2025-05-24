@@ -11,6 +11,7 @@ from config import get_config
 from services.airtable_service import AirtableService
 from services.nca_service import NCAService
 from utils.logger import APILogger
+from utils.webhook_validator import webhook_validation_required
 
 logger = logging.getLogger(__name__)
 api_logger = APILogger()
@@ -36,6 +37,7 @@ def test_webhook():
 
 
 @webhooks_bp.route('/elevenlabs', methods=['POST'])
+@webhook_validation_required('elevenlabs')
 def elevenlabs_webhook():
     """Handle ElevenLabs voice generation callbacks."""
     try:
@@ -148,6 +150,7 @@ def elevenlabs_webhook():
 
 
 @webhooks_bp.route('/nca-toolkit', methods=['POST'])
+@webhook_validation_required('nca-toolkit')
 def nca_toolkit_webhook():
     """Handle NCA Toolkit media processing callbacks."""
     try:
@@ -284,6 +287,7 @@ def nca_toolkit_webhook():
 
 
 @webhooks_bp.route('/goapi', methods=['POST'])
+@webhook_validation_required('goapi')
 def goapi_webhook():
     """Handle GoAPI music generation callbacks."""
     try:

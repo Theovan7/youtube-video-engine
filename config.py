@@ -90,6 +90,19 @@ class Config:
     STATUS_PROCESSING = 'processing'
     STATUS_COMPLETED = 'completed'
     STATUS_FAILED = 'failed'
+    
+    # Webhook Validation Configuration
+    # ElevenLabs webhook validation
+    WEBHOOK_VALIDATION_ELEVENLABS_ENABLED = os.getenv('WEBHOOK_VALIDATION_ELEVENLABS_ENABLED', 'False').lower() == 'true'
+    WEBHOOK_SECRET_ELEVENLABS = os.getenv('WEBHOOK_SECRET_ELEVENLABS', '')
+    
+    # NCA Toolkit webhook validation
+    WEBHOOK_VALIDATION_NCA_ENABLED = os.getenv('WEBHOOK_VALIDATION_NCA_ENABLED', 'False').lower() == 'true'
+    WEBHOOK_SECRET_NCA = os.getenv('WEBHOOK_SECRET_NCA', '')
+    
+    # GoAPI webhook validation
+    WEBHOOK_VALIDATION_GOAPI_ENABLED = os.getenv('WEBHOOK_VALIDATION_GOAPI_ENABLED', 'False').lower() == 'true'
+    WEBHOOK_SECRET_GOAPI = os.getenv('WEBHOOK_SECRET_GOAPI', '')
 
 
 class DevelopmentConfig(Config):

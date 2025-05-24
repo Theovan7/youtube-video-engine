@@ -237,6 +237,65 @@ python scripts/test_integrations.py
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
+## Webhook Security
+
+### Webhook Signature Validation
+
+The API supports optional webhook signature validation to ensure webhook requests are authentic and haven't been tampered with. This feature can be enabled independently for each service.
+
+#### Configuration
+
+Set the following environment variables to enable webhook validation:
+
+```bash
+# Enable validation for each service (default: False)
+WEBHOOK_VALIDATION_ELEVENLABS_ENABLED=True
+WEBHOOK_VALIDATION_NCA_ENABLED=True
+WEBHOOK_VALIDATION_GOAPI_ENABLED=True
+
+# Webhook secrets (required if validation is enabled)
+WEBHOOK_SECRET_ELEVENLABS=your-elevenlabs-webhook-secret
+WEBHOOK_SECRET_NCA=your-nca-webhook-secret
+WEBHOOK_SECRET_GOAPI=your-goapi-webhook-secret
+```
+
+#### How It Works
+
+1. Each service sends a signature header with webhook requests:
+   - ElevenLabs: `X-ElevenLabs-Signature`
+   - NCA Toolkit: `X-NCA-Signature`
+   - GoAPI: `X-GoAPI-Signature`
+
+2. The signature is calculated using HMAC-SHA256:
+   ```python
+   signature = hmac.new(
+       secret.encode('utf-8'),
+       request_body,
+       hashlib.sha256
+   ).hexdigest()
+   ```
+
+3. The API validates the signature before processing the webhook
+
+4. Invalid signatures return a 401 Unauthorized response
+
+#### Testing Webhook Validation
+
+You can test webhook validation using curl:
+
+```bash
+# Calculate signature
+PAYLOAD='{"status": "completed", "output": {"url": "https://example.com/result.mp3"}}'
+SECRET="your-webhook-secret"
+SIGNATURE=$(echo -n "$PAYLOAD" | openssl dgst -sha256 -hmac "$SECRET" | sed 's/^.*= //')
+
+# Send webhook with signature
+curl -X POST http://localhost:5000/webhooks/elevenlabs?job_id=test-job \
+  -H "Content-Type: application/json" \
+  -H "X-ElevenLabs-Signature: $SIGNATURE" \
+  -d "$PAYLOAD"
+```
+
 ## Support
 
 For issues and questions, please open an issue on GitHub.
