@@ -14,6 +14,36 @@ api_logger = APILogger()
 class AirtableService:
     """Service for interacting with Airtable."""
     
+    # Field mappings for existing tables
+    VIDEO_FIELD_MAP = {
+        'name': 'Description',
+        'script': 'Video Script',
+        'video_id': 'Video ID',
+        'ai_video': 'AI Video',
+        'video_srt': 'Video SRT',
+        'transcript_url': 'Transcript URL',
+        'video_broll': 'Video + B-Roll',
+        'width': 'Width',
+        'height': 'Height',
+        'segments_count': '# Segments',
+        'music': 'Music',
+        'music_task_id': 'AI Music Task ID',
+        'video_captions': 'Video + Captions',
+        'video_music': 'Video + Music'
+    }
+    
+    SEGMENT_FIELD_MAP = {
+        'segment_id': 'Segment ID',
+        'srt_id': 'SRT Segment ID',
+        'srt_segment': 'SRT Segment',
+        'video': 'Videos',
+        'timestamps': 'Timestamps',
+        'text': 'SRT Text',
+        'start_time': 'Start Time',
+        'end_time': 'End Time',
+        'duration': 'Duration'
+    }
+    
     def __init__(self):
         """Initialize Airtable service."""
         self.config = get_config()()
@@ -31,12 +61,11 @@ class AirtableService:
         """Create a new video record."""
         try:
             fields = {
-                'Name': name,
-                'Script': script,
-                'Status': self.config.STATUS_PENDING
+                'Description': name,  # Using Description instead of Name
+                'Video Script': script,  # Using Video Script instead of Script
+                # Note: Videos table doesn't have a Status field in the existing schema
             }
-            if music_prompt:
-                fields['Music Prompt'] = music_prompt
+            # Store music prompt in a different way if needed
             
             record = self.videos_table.create(fields)
             api_logger.log_api_response('airtable', 'create_video', 200, record)
@@ -57,7 +86,18 @@ class AirtableService:
     def update_video(self, video_id: str, fields: Dict) -> Dict:
         """Update a video record."""
         try:
-            record = self.videos_table.update(video_id, fields)
+            # Map field names to actual Airtable field names
+            mapped_fields = {}
+            for key, value in fields.items():
+                # Check if we have a mapping for this field
+                if key in ['name', 'script']:
+                    mapped_key = self.VIDEO_FIELD_MAP.get(key, key)
+                    mapped_fields[mapped_key] = value
+                else:
+                    # Pass through unmapped fields as-is (for direct field names)
+                    mapped_fields[key] = value
+            
+            record = self.videos_table.update(video_id, mapped_fields)
             api_logger.log_api_response('airtable', 'update_video', 200, record)
             return record
         except Exception as e:
@@ -65,11 +105,17 @@ class AirtableService:
             raise
     
     def update_video_status(self, video_id: str, status: str, error_details: Optional[str] = None) -> Dict:
-        """Update video status."""
-        fields = {'Status': status}
+        """Update video status.
+        Note: The existing Videos table doesn't have a Status field.
+        This method will store status information in a different way or should be modified.
+        """
+        # Since there's no Status field, we might need to track this in the Jobs table
+        # or add a Status field to the Videos table
+        fields = {}
         if error_details:
+            # We can store error details somewhere
             fields['Error Details'] = error_details
-        return self.update_video(video_id, fields)
+        return self.update_video(video_id, fields) if fields else self.get_video(video_id)
     
     # Segment operations
     def create_segments(self, video_id: str, segments: List[Dict]) -> List[Dict]:
@@ -78,18 +124,18 @@ class AirtableService:
             records = []
             for i, segment in enumerate(segments):
                 fields = {
-                    'Name': f"Segment {i + 1}",
-                    'Video': [video_id],
-                    'Text': segment['text'],
-                    'Order': i + 1,
+                    'SRT Segment ID': str(i + 1),  # Using SRT Segment ID
+                    'Videos': [video_id],  # Using Videos instead of Video
+                    'SRT Text': segment['text'],  # Using SRT Text instead of Text
                     'Start Time': segment.get('start_time', i * self.config.DEFAULT_SEGMENT_DURATION),
                     'End Time': segment.get('end_time', (i + 1) * self.config.DEFAULT_SEGMENT_DURATION),
-                    'Status': self.config.STATUS_PENDING
+                    # Note: Segments table doesn't have Order, Status, Voice ID, or Base Video fields
                 }
-                if segment.get('voice_id'):
-                    fields['Voice ID'] = segment['voice_id']
-                if segment.get('base_video'):
-                    fields['Base Video'] = segment['base_video']
+                
+                # Calculate timestamps in format "00:00:00.000 --> 00:00:00.000"
+                start_time = segment.get('start_time', i * self.config.DEFAULT_SEGMENT_DURATION)
+                end_time = segment.get('end_time', (i + 1) * self.config.DEFAULT_SEGMENT_DURATION)
+                fields['Timestamps'] = f"{self._format_timestamp(start_time)} --> {self._format_timestamp(end_time)}"
                 
                 records.append(fields)
             
@@ -101,6 +147,13 @@ class AirtableService:
         except Exception as e:
             api_logger.log_error('airtable', e, {'operation': 'create_segments'})
             raise
+    
+    def _format_timestamp(self, seconds: float) -> str:
+        """Format seconds to SRT timestamp format."""
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = seconds % 60
+        return f"{hours:02d}:{minutes:02d}:{secs:06.3f}"
     
     def get_segment(self, segment_id: str) -> Dict:
         """Get a segment record by ID."""
@@ -124,8 +177,8 @@ class AirtableService:
     def get_video_segments(self, video_id: str) -> List[Dict]:
         """Get all segments for a video."""
         try:
-            formula = match({'Video': video_id})
-            segments = self.segments_table.all(formula=formula, sort=['Order'])
+            formula = match({'Videos': video_id})  # Using Videos instead of Video
+            segments = self.segments_table.all(formula=formula, sort=['SRT Segment ID'])  # Sort by SRT Segment ID
             return segments
         except Exception as e:
             api_logger.log_error('airtable', e, {'operation': 'get_video_segments', 'video_id': video_id})
@@ -219,12 +272,12 @@ class AirtableService:
                 'Service': service,
                 'Endpoint': endpoint,
                 'Raw Payload': str(payload),
-                'Processed': False,
-                'Success': False
+                'Processed': 'No',  # Using Yes/No instead of boolean
+                'Success': 'No'     # Using Yes/No instead of boolean
             }
             
             if related_job_id:
-                fields['Related Job'] = [related_job_id]
+                fields['Related Job'] = related_job_id  # Storing as text field for now
             
             record = self.webhook_events_table.create(fields)
             api_logger.log_webhook(service, payload)
@@ -237,8 +290,8 @@ class AirtableService:
         """Mark a webhook event as processed."""
         try:
             fields = {
-                'Processed': True,
-                'Success': success
+                'Processed': 'Yes',  # Using Yes/No instead of boolean
+                'Success': 'Yes' if success else 'No'
             }
             record = self.webhook_events_table.update(event_id, fields)
             return record
@@ -247,7 +300,37 @@ class AirtableService:
                                                'event_id': event_id})
             raise
     
-    # Utility methods
+    # Helper methods for existing video table structure
+    def add_video_attachment(self, video_id: str, attachment_type: str, url: str, 
+                           filename: Optional[str] = None) -> Dict:
+        """Add an attachment to a video record.
+        
+        attachment_type can be: 'AI Video', 'Video + B-Roll', 'Music', 
+                               'Video + Captions', 'Video + Music'
+        """
+        return self.add_attachment('videos', video_id, attachment_type, url, filename)
+    
+    def update_video_urls(self, video_id: str, srt_url: Optional[str] = None,
+                         transcript_url: Optional[str] = None, 
+                         music_task_id: Optional[str] = None) -> Dict:
+        """Update URL fields in a video record."""
+        fields = {}
+        if srt_url:
+            fields['Video SRT'] = srt_url
+        if transcript_url:
+            fields['Transcript URL'] = transcript_url
+        if music_task_id:
+            fields['AI Music Task ID'] = music_task_id
+        
+        return self.update_video(video_id, fields) if fields else self.get_video(video_id)
+    
+    def update_video_dimensions(self, video_id: str, width: int, height: int) -> Dict:
+        """Update video dimensions."""
+        fields = {
+            'Width': width,
+            'Height': height
+        }
+        return self.update_video(video_id, fields)
     def add_attachment(self, table_name: str, record_id: str, field_name: str, 
                       url: str, filename: Optional[str] = None) -> Dict:
         """Add an attachment to a record."""
@@ -255,13 +338,20 @@ class AirtableService:
             # Get the appropriate table
             table = getattr(self, f"{table_name.lower()}_table")
             
+            # Get existing record to preserve existing attachments
+            record = table.get(record_id)
+            existing_attachments = record['fields'].get(field_name, [])
+            
             # Create attachment object
             attachment = {'url': url}
             if filename:
                 attachment['filename'] = filename
             
+            # Append to existing attachments
+            attachments = existing_attachments + [attachment]
+            
             # Update the record
-            record = table.update(record_id, {field_name: [attachment]})
+            record = table.update(record_id, {field_name: attachments})
             return record
         except Exception as e:
             api_logger.log_error('airtable', e, {
