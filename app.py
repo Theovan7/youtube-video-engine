@@ -11,6 +11,7 @@ from config import get_config
 from api.routes import api_bp
 from api.webhooks import webhooks_bp
 from utils.logger import setup_logging
+from flask_swagger_ui import get_swaggerui_blueprint
 
 # Setup logging
 setup_logging()
@@ -40,6 +41,31 @@ def create_app(config_name=None):
     # Register blueprints
     app.register_blueprint(api_bp, url_prefix='/api/v1')
     app.register_blueprint(webhooks_bp, url_prefix='/webhooks')
+    
+    # Setup Swagger UI
+    SWAGGER_URL = '/api/docs'
+    API_URL = '/static/swagger.json'
+    
+    swaggerui_blueprint = get_swaggerui_blueprint(
+        SWAGGER_URL,
+        API_URL,
+        config={
+            'app_name': "YouTube Video Engine API",
+            'deepLinking': True,
+            'displayRequestDuration': True,
+            'docExpansion': 'none',
+            'defaultModelsExpandDepth': 1,
+            'defaultModelExpandDepth': 1,
+            'defaultModelRendering': 'example',
+            'displayOperationId': False,
+            'filter': True,
+            'showExtensions': True,
+            'showCommonExtensions': True,
+            'supportedSubmitMethods': ['get', 'post', 'put', 'delete', 'patch']
+        }
+    )
+    
+    app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
     
     # Health check endpoint
     @app.route('/health')

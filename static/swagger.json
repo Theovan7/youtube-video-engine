@@ -1,0 +1,662 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "YouTube Video Engine API",
+    "description": "Production-ready automation system that transforms written scripts into fully produced videos with AI-generated voiceovers and background music.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@youtubevideoengine.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Development server"
+    },
+    {
+      "url": "https://youtube-video-engine.fly.dev",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health Check",
+        "description": "Check the health status of the API and external services",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Service is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/process-script": {
+      "post": {
+        "summary": "Process Script",
+        "description": "Parse a script into timed segments",
+        "tags": ["Script Processing"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProcessScriptRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Script processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProcessScriptResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate-voiceover": {
+      "post": {
+        "summary": "Generate Voiceover",
+        "description": "Generate AI voiceover for a segment using ElevenLabs",
+        "tags": ["Voice Generation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateVoiceoverRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Voiceover generation started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/combine-segment-media": {
+      "post": {
+        "summary": "Combine Segment Media",
+        "description": "Combine background video with voiceover for a segment",
+        "tags": ["Media Processing"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CombineSegmentMediaRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Media combination started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/combine-all-segments": {
+      "post": {
+        "summary": "Combine All Segments",
+        "description": "Concatenate all segment videos into a single video",
+        "tags": ["Media Processing"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CombineAllSegmentsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Segment combination started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/generate-and-add-music": {
+      "post": {
+        "summary": "Generate and Add Music",
+        "description": "Generate AI background music and add it to the final video",
+        "tags": ["Music Generation"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateMusicRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Music generation started",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncJobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{job_id}": {
+      "get": {
+        "summary": "Get Job Status",
+        "description": "Check the status of an asynchronous job",
+        "tags": ["Jobs"],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the job to check",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job status retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobStatusResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Job not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/webhooks/elevenlabs": {
+      "post": {
+        "summary": "ElevenLabs Webhook",
+        "description": "Webhook endpoint for ElevenLabs callbacks",
+        "tags": ["Webhooks"],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "query",
+            "required": true,
+            "description": "Job ID associated with the webhook",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook processed successfully"
+          },
+          "401": {
+            "description": "Invalid webhook signature"
+          }
+        }
+      }
+    },
+    "/webhooks/nca": {
+      "post": {
+        "summary": "NCA Toolkit Webhook",
+        "description": "Webhook endpoint for NCA Toolkit callbacks",
+        "tags": ["Webhooks"],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "query",
+            "required": true,
+            "description": "Job ID associated with the webhook",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook processed successfully"
+          },
+          "401": {
+            "description": "Invalid webhook signature"
+          }
+        }
+      }
+    },
+    "/webhooks/goapi": {
+      "post": {
+        "summary": "GoAPI Webhook",
+        "description": "Webhook endpoint for GoAPI callbacks",
+        "tags": ["Webhooks"],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "query",
+            "required": true,
+            "description": "Job ID associated with the webhook",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook processed successfully"
+          },
+          "401": {
+            "description": "Invalid webhook signature"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "healthy"
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          },
+          "services": {
+            "type": "object",
+            "properties": {
+              "airtable": {
+                "type": "string",
+                "example": "connected"
+              },
+              "elevenlabs": {
+                "type": "string",
+                "example": "connected"
+              },
+              "nca": {
+                "type": "string",
+                "example": "connected"
+              },
+              "goapi": {
+                "type": "string",
+                "example": "connected"
+              }
+            }
+          }
+        }
+      },
+      "ProcessScriptRequest": {
+        "type": "object",
+        "required": ["script_text", "video_id"],
+        "properties": {
+          "script_text": {
+            "type": "string",
+            "description": "The script text to be processed",
+            "example": "This is my script that will be processed into segments..."
+          },
+          "video_id": {
+            "type": "string",
+            "description": "Airtable record ID of the video",
+            "example": "rec123456789"
+          },
+          "target_segment_duration": {
+            "type": "integer",
+            "description": "Target duration for each segment in seconds",
+            "default": 30,
+            "example": 30
+          }
+        }
+      },
+      "ProcessScriptResponse": {
+        "type": "object",
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "example": "rec123456789"
+          },
+          "segments_created": {
+            "type": "integer",
+            "example": 5
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "example": "recABC123"
+                },
+                "order": {
+                  "type": "integer",
+                  "example": 1
+                },
+                "text": {
+                  "type": "string",
+                  "example": "This is segment 1 text..."
+                },
+                "estimated_duration": {
+                  "type": "number",
+                  "example": 28.5
+                }
+              }
+            }
+          }
+        }
+      },
+      "GenerateVoiceoverRequest": {
+        "type": "object",
+        "required": ["segment_id", "voice_id"],
+        "properties": {
+          "segment_id": {
+            "type": "string",
+            "description": "Airtable record ID of the segment",
+            "example": "recABC123"
+          },
+          "voice_id": {
+            "type": "string",
+            "description": "ElevenLabs voice ID",
+            "example": "21m00Tcm4TlvDq8ikWAM"
+          },
+          "stability": {
+            "type": "number",
+            "description": "Voice stability (0.0-1.0)",
+            "default": 0.5,
+            "minimum": 0,
+            "maximum": 1,
+            "example": 0.5
+          },
+          "similarity_boost": {
+            "type": "number",
+            "description": "Voice similarity boost (0.0-1.0)",
+            "default": 0.5,
+            "minimum": 0,
+            "maximum": 1,
+            "example": 0.5
+          }
+        }
+      },
+      "CombineSegmentMediaRequest": {
+        "type": "object",
+        "required": ["segment_id"],
+        "properties": {
+          "segment_id": {
+            "type": "string",
+            "description": "Airtable record ID of the segment",
+            "example": "recABC123"
+          }
+        }
+      },
+      "CombineAllSegmentsRequest": {
+        "type": "object",
+        "required": ["video_id"],
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "description": "Airtable record ID of the video",
+            "example": "rec123456789"
+          }
+        }
+      },
+      "GenerateMusicRequest": {
+        "type": "object",
+        "required": ["video_id", "music_prompt"],
+        "properties": {
+          "video_id": {
+            "type": "string",
+            "description": "Airtable record ID of the video",
+            "example": "rec123456789"
+          },
+          "music_prompt": {
+            "type": "string",
+            "description": "Prompt for AI music generation",
+            "example": "upbeat corporate background music"
+          },
+          "duration": {
+            "type": "integer",
+            "description": "Duration of music in seconds",
+            "default": 180,
+            "example": 180
+          }
+        }
+      },
+      "AsyncJobResponse": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "description": "ID of the created job",
+            "example": "job_123456789"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current job status",
+            "enum": ["pending", "processing", "completed", "failed"],
+            "example": "processing"
+          },
+          "message": {
+            "type": "string",
+            "description": "Status message",
+            "example": "Job created successfully"
+          }
+        }
+      },
+      "JobStatusResponse": {
+        "type": "object",
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "example": "job_123456789"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of job",
+            "enum": ["voiceover", "combine_media", "combine_segments", "music_generation"],
+            "example": "voiceover"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "processing", "completed", "failed"],
+            "example": "completed"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T12:00:00Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T12:05:00Z"
+          },
+          "result": {
+            "type": "object",
+            "description": "Job result data (varies by job type)"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if job failed"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message",
+            "example": "Invalid request parameters"
+          },
+          "details": {
+            "type": "object",
+            "description": "Additional error details"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "System",
+      "description": "System health and status endpoints"
+    },
+    {
+      "name": "Script Processing",
+      "description": "Endpoints for processing scripts into segments"
+    },
+    {
+      "name": "Voice Generation",
+      "description": "Endpoints for generating AI voiceovers"
+    },
+    {
+      "name": "Media Processing",
+      "description": "Endpoints for video processing and combination"
+    },
+    {
+      "name": "Music Generation",
+      "description": "Endpoints for generating and adding background music"
+    },
+    {
+      "name": "Jobs",
+      "description": "Endpoints for checking job status"
+    },
+    {
+      "name": "Webhooks",
+      "description": "Webhook endpoints for external service callbacks"
+    }
+  ]
+}
