@@ -162,9 +162,8 @@ def generate_voiceover():
         if not segment:
             return jsonify({'error': 'Segment not found'}), 404
         
-        # Update segment with voice settings
+        # Update segment status (Voice ID field doesn't exist in current schema)
         airtable.update_segment(data['segment_id'], {
-            'Voice ID': data['voice_id'],
             'Status': 'generating_voiceover'
         })
         
@@ -545,7 +544,7 @@ def get_video_segments(video_id):
                 'start_time': fields.get('Start Time'),
                 'end_time': fields.get('End Time'),
                 'duration': fields.get('End Time', 0) - fields.get('Start Time', 0),
-                'voice_id': fields.get('Voice ID', None)  # Voice ID might not exist
+                # 'voice_id' field doesn't exist in current schema
             }
             
             # Add media URLs if available

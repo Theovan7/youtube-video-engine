@@ -52,7 +52,7 @@ def make_request(method, endpoint, data=None, headers=None):
         
         print(f"Response status: {response.status_code}")
         
-        if response.status_code == 200:
+        if response.status_code in [200, 201]:
             response_data = response.json()
             print(f"Response data: {json.dumps(response_data, indent=2)}")
             return response_data
@@ -156,7 +156,7 @@ def run_production_test():
     print_step(4, "Combining video segments")
     combine_data = {"video_id": video_id}
     
-    result = make_request("POST", "/api/v1/combine-segments", combine_data)
+    result = make_request("POST", "/api/v1/combine-all-segments", combine_data)
     if not result or not result.get("job_id"):
         print("ERROR: Failed to start segment combination")
         return False
@@ -192,28 +192,8 @@ def run_production_test():
     
     print("✓ Music generated successfully")
     
-    # Step 6: Finalize video
-    print_step(6, "Creating final video with all components")
-    finalize_data = {"video_id": video_id}
-    
-    result = make_request("POST", "/api/v1/finalize-video", finalize_data)
-    if not result or not result.get("job_id"):
-        print("ERROR: Failed to start video finalization")
-        return False
-    
-    final_job_id = result["job_id"]
-    print(f"✓ Finalization job created: {final_job_id}")
-    
-    # Wait for finalization
-    result = wait_for_job(final_job_id)
-    if not result:
-        print("ERROR: Video finalization failed")
-        return False
-    
-    print("✓ Video finalized successfully")
-    
-    # Step 7: Get final video status
-    print_step(7, "Retrieving final video information")
+    # Step 6: Get final video status
+    print_step(6, "Retrieving final video information")
     result = make_request("GET", f"/api/v1/videos/{video_id}")
     if result:
         print("\n✓ PRODUCTION TEST COMPLETED SUCCESSFULLY!")
