@@ -46,7 +46,13 @@ class NCAService:
         """Check if NCA Toolkit service is healthy."""
         try:
             # Use the NCA Toolkit test endpoint for health check
-            response = self.session.get(f"{self.base_url}/v1/toolkit/test", timeout=5)
+            # Using a GET request with proper headers
+            headers = {'x-api-key': self.api_key}
+            response = requests.get(
+                f"{self.base_url}/v1/toolkit/test", 
+                headers=headers,
+                timeout=10  # Increased timeout
+            )
             return response.status_code == 200
         except Exception as e:
             logger.error(f"NCA Toolkit health check failed: {e}")

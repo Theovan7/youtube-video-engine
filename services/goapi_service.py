@@ -44,8 +44,15 @@ class GoAPIService:
         """Check if GoAPI service is healthy."""
         try:
             # Check credit balance as a health indicator
-            response = self.session.get(f"{self.base_url}/api/v1/generate/credit", timeout=5)
-            return response.status_code == 200
+            response = self.session.get(f"{self.base_url}/api/v1/generate/credit", timeout=10)
+            if response.status_code == 401:
+                logger.error(f"GoAPI health check failed: Authentication error - API key may be invalid")
+                return False
+            elif response.status_code == 200:
+                return True
+            else:
+                logger.error(f"GoAPI health check failed: HTTP {response.status_code} - {response.text}")
+                return False
         except Exception as e:
             logger.error(f"GoAPI health check failed: {e}")
             return False
