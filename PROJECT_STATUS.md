@@ -48,12 +48,13 @@
 - [x] Tested actual API endpoints
 
 ### 2. Airtable Configuration:
-- [ ] Create/verify Airtable base structure
-- [ ] Create Videos table with required fields
-- [ ] Create Segments table with required fields
-- [ ] Create Jobs table with required fields
-- [ ] Create Webhook Events table with required fields
-- [ ] Verify table names match environment variables
+- [x] Verify Airtable base structure
+- [x] Videos table exists (with custom field names)
+- [x] Segments table exists (with custom field names)
+- [x] Jobs table created
+- [x] Webhook Events table created
+- [x] Updated code to match existing table schemas
+- [ ] Add linked fields to Jobs table (Related Video, Related Segment) - Manual task
 
 ### 3. Production Testing:
 - [ ] Test script processing endpoint
