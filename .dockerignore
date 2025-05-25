@@ -1,0 +1,67 @@
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Development files
+.git/
+.gitignore
+.DS_Store
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.ruff_cache/
+.mypy_cache/
+.hypothesis/
+*.log
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+.cursor/
+
+# Environment files (except .env.example)
+.env
+.env.local
+.env.*.local
+
+# Test files
+tests/
+test_*.py
+*_test.py
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Local development files
+.roo/
+.roomodes
+.taskmasterconfig
+.windsurfrules
+tasks/
+scripts/
+Project Briefs/
