@@ -130,11 +130,11 @@ def process_script():
             'segments': [
                 {
                     'id': record['id'],
-                    'order': record['fields']['Order'],
-                    'text': record['fields']['Text'],
-                    'duration': record['fields']['End Time'] - record['fields']['Start Time']
+                    'order': record['fields'].get('SRT Segment ID', i+1),
+                    'text': record['fields'].get('SRT Text', ''),
+                    'duration': record['fields'].get('End Time', 0) - record['fields'].get('Start Time', 0)
                 }
-                for record in segment_records
+                for i, record in enumerate(segment_records)
             ]
         }), 201
         
@@ -184,7 +184,7 @@ def generate_voiceover():
         
         # Generate voiceover
         result = elevenlabs.generate_voice(
-            text=segment['fields']['Text'],
+            text=segment['fields']['SRT Text'],  # Using SRT Text field
             voice_id=data['voice_id'],
             stability=data['stability'],
             similarity_boost=data['similarity_boost'],
@@ -493,12 +493,12 @@ def get_video_details(video_id):
         
         response = {
             'video_id': video_id,
-            'name': fields.get('Name'),
-            'status': fields.get('Status'),
+            'name': fields.get('Description'),  # Using Description field
+            'status': fields.get('Status', 'unknown'),  # Status field doesn't exist in current schema
             'created_at': video.get('createdTime'),
-            'script': fields.get('Script'),
+            'script': fields.get('Video Script'),  # Using Video Script field
             'music_prompt': fields.get('Music Prompt'),
-            'segment_count': len(fields.get('Segments', []))
+            'segment_count': fields.get('# Segments', len(fields.get('Segments', [])))
         }
         
         # Add video URLs if available
@@ -539,13 +539,13 @@ def get_video_segments(video_id):
             fields = segment['fields']
             segment_data = {
                 'segment_id': segment['id'],
-                'order': fields.get('Order'),
-                'text': fields.get('Text'),
-                'status': fields.get('Status'),
+                'order': fields.get('SRT Segment ID'),  # Using SRT Segment ID
+                'text': fields.get('SRT Text'),  # Using SRT Text
+                'status': fields.get('Status', 'unknown'),  # Status field doesn't exist
                 'start_time': fields.get('Start Time'),
                 'end_time': fields.get('End Time'),
                 'duration': fields.get('End Time', 0) - fields.get('Start Time', 0),
-                'voice_id': fields.get('Voice ID')
+                'voice_id': fields.get('Voice ID', None)  # Voice ID might not exist
             }
             
             # Add media URLs if available
