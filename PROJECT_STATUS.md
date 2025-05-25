@@ -20,7 +20,7 @@
 2. **Fly.io Deployment** - App successfully deployed
    - App URL: https://youtube-video-engine.fly.dev
    - Health endpoint: Fully functional (all services connected)
-   - Latest deployment includes all service fixes
+   - Latest deployment includes all service fixes and API field fixes
 
 3. **Environment Variables** - All secrets configured in Fly.io
    - AIRTABLE_API_KEY ✓
@@ -57,8 +57,10 @@
 - [ ] Add linked fields to Jobs table (Related Video, Related Segment) - Manual task
 
 ### 3. Production Testing:
-- [ ] Test script processing endpoint
-- [ ] Test voiceover generation
+- [x] Test script processing endpoint - Working
+- [x] Fixed Voice ID field issue in API routes
+- [x] Fixed test script endpoint URLs
+- [ ] Test voiceover generation - Need to run after deployment
 - [ ] Test video segment combination
 - [ ] Test music generation
 - [ ] Run full end-to-end video production test

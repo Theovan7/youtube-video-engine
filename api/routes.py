@@ -162,10 +162,8 @@ def generate_voiceover():
         if not segment:
             return jsonify({'error': 'Segment not found'}), 404
         
-        # Update segment status (Voice ID field doesn't exist in current schema)
-        airtable.update_segment(data['segment_id'], {
-            'Status': 'generating_voiceover'
-        })
+        # Note: Status field doesn't exist in current Segments table schema
+        # Skipping status update for segment
         
         # Create job record
         job = airtable.create_job(
@@ -233,10 +231,9 @@ def combine_segment_media():
         if 'Voiceover' not in segment['fields'] or not segment['fields']['Voiceover']:
             return jsonify({'error': 'Voiceover not ready for this segment'}), 400
         
-        # Update segment with base video
+        # Update segment with base video (Status field doesn't exist)
         airtable.update_segment(data['segment_id'], {
-            'Base Video': [{'url': data['base_video_url']}],
-            'Status': 'combining_media'
+            'Base Video': [{'url': data['base_video_url']}]
         })
         
         # Create job record
