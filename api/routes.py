@@ -457,13 +457,21 @@ def get_job_status(job_id):
             'external_job_id': fields.get('External Job ID')
         }
         
-        # Add related entity info
-        if 'Related Video' in fields and fields['Related Video']:
-            response['video_id'] = fields['Related Video'][0]
-            response['entity_type'] = 'video'
-        elif 'Related Segment' in fields and fields['Related Segment']:
-            response['segment_id'] = fields['Related Segment'][0]
-            response['entity_type'] = 'segment'
+        # Extract related entity info from Request Payload
+        # (Related Video/Segment fields don't exist in current schema)
+        if 'Request Payload' in fields:
+            try:
+                import ast
+                payload = ast.literal_eval(fields['Request Payload'])
+                if isinstance(payload, dict):
+                    if 'video_id' in payload:
+                        response['video_id'] = payload['video_id']
+                        response['entity_type'] = 'video'
+                    if 'segment_id' in payload:
+                        response['segment_id'] = payload['segment_id']
+                        response['entity_type'] = 'segment'
+            except:
+                pass  # Ignore parsing errors
         
         # Add error details if failed
         if fields.get('Status') == config.STATUS_FAILED:

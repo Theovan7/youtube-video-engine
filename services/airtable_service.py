@@ -177,7 +177,8 @@ class AirtableService:
     def get_video_segments(self, video_id: str) -> List[Dict]:
         """Get all segments for a video."""
         try:
-            formula = match({'Videos': video_id})  # Using Videos instead of Video
+            # Use FIND function for linked record search
+            formula = f"FIND('{video_id}', {{Videos}}) > 0"
             segments = self.segments_table.all(formula=formula, sort=['SRT Segment ID'])  # Sort by SRT Segment ID
             return segments
         except Exception as e:
@@ -195,10 +196,17 @@ class AirtableService:
                 'Status': self.config.STATUS_PENDING
             }
             
+            # Note: Related Video and Related Segment fields don't exist in current schema
+            # These would need to be added to the Jobs table in Airtable
+            # For now, storing as plain text in Request Payload
             if video_id:
-                fields['Related Video'] = [video_id]
+                if not request_payload:
+                    request_payload = {}
+                request_payload['video_id'] = video_id
             if segment_id:
-                fields['Related Segment'] = [segment_id]
+                if not request_payload:
+                    request_payload = {}
+                request_payload['segment_id'] = segment_id
             if external_job_id:
                 fields['External Job ID'] = external_job_id
             if webhook_url:
@@ -276,8 +284,10 @@ class AirtableService:
                 'Success': 'No'     # Using Yes/No instead of boolean
             }
             
+            # Note: Related Job field might not exist in current schema
+            # Storing job ID in Raw Payload for now
             if related_job_id:
-                fields['Related Job'] = related_job_id  # Storing as text field for now
+                payload['_related_job_id'] = related_job_id
             
             record = self.webhook_events_table.create(fields)
             api_logger.log_webhook(service, payload)
