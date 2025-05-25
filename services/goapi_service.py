@@ -43,8 +43,8 @@ class GoAPIService:
     def check_health(self) -> bool:
         """Check if GoAPI service is healthy."""
         try:
-            # GoAPI doesn't have a dedicated health endpoint, so we'll check user info
-            response = self.session.get(f"{self.base_url}/user", timeout=5)
+            # Check credit balance as a health indicator
+            response = self.session.get(f"{self.base_url}/api/v1/generate/credit", timeout=5)
             return response.status_code == 200
         except Exception as e:
             logger.error(f"GoAPI health check failed: {e}")

@@ -38,14 +38,15 @@ class NCAService:
         
         # Set default headers
         self.session.headers.update({
-            'X-API-Key': self.api_key,
+            'x-api-key': self.api_key,
             'Content-Type': 'application/json'
         })
     
     def check_health(self) -> bool:
         """Check if NCA Toolkit service is healthy."""
         try:
-            response = self.session.get(f"{self.base_url}/health", timeout=5)
+            # Use the NCA Toolkit test endpoint for health check
+            response = self.session.get(f"{self.base_url}/v1/toolkit/test", timeout=5)
             return response.status_code == 200
         except Exception as e:
             logger.error(f"NCA Toolkit health check failed: {e}")

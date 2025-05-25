@@ -58,7 +58,7 @@ class Config:
     
     # GoAPI Configuration
     GOAPI_API_KEY = os.getenv('GOAPI_API_KEY')
-    GOAPI_BASE_URL = 'https://api.goapi.ai/v1'
+    GOAPI_BASE_URL = os.getenv('GOAPI_BASE_URL', 'https://apibox.erweima.ai')
     
     # Application Configuration
     WEBHOOK_BASE_URL = os.getenv('WEBHOOK_BASE_URL', 'http://localhost:5000')
