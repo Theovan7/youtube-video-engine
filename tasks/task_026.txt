@@ -6,10 +6,10 @@
 # Description: Set up the YouTube Video Engine for production including background videos, Airtable configuration, webhook registrations, end-to-end testing, and monitoring/error tracking systems.
 # Details:
 1. Set up background videos for segment combination testing:
-   - Create a library of at least 10 diverse background videos (different themes, durations)
-   - Upload videos to a CDN or cloud storage with public access
-   - Create a mapping file that categorizes videos by theme/mood
-   - Add reference to these videos in the configuration
+   - Utilize the 'Video' field in the Segments table in Airtable where users manually upload videos
+   - Ensure the API can properly read and process these user-uploaded videos
+   - Document the user workflow for selecting and uploading appropriate videos for each segment
+   - Implement validation to ensure uploaded videos meet required specifications
 
 2. Configure Airtable linked fields in Jobs table:
    - Add linked record fields in the Jobs table to connect to Videos and Segments tables
@@ -47,10 +47,10 @@
 
 # Test Strategy:
 1. Background Video Testing:
-   - Verify all background videos are accessible via their URLs
-   - Test video playback in different browsers and devices
-   - Confirm videos meet quality standards and are appropriate for the intended use
-   - Validate the mapping file correctly categorizes all videos
+   - Verify the API can correctly access and process videos uploaded to the 'Video' field in Airtable
+   - Test the user workflow for uploading videos to segments
+   - Confirm uploaded videos meet quality standards and are appropriate for the intended use
+   - Test error handling for missing or invalid video uploads
 
 2. Airtable Configuration Testing:
    - Create test records in the Jobs table and verify linked fields work correctly
@@ -86,9 +86,9 @@
 # Subtasks:
 ## 1. Create and Configure Background Video Library [pending]
 ### Dependencies: None
-### Description: Build a library of diverse background videos, upload them to cloud storage, and create a mapping system for the video engine to reference.
+### Description: Support the user-in-the-loop process for background videos where users manually upload videos to the 'Video' field in the Segments table in Airtable.
 ### Details:
-Create at least 10 background videos with different themes (nature, urban, abstract, etc.) and durations (30s to 2min). Upload these to AWS S3 or similar cloud storage with public access enabled. Create a JSON mapping file that categorizes videos by theme, mood, duration, and provides direct URLs. Update the configuration files in the video engine to reference this mapping file.
+Update the video engine to read background videos directly from the 'Video' field in the Segments table in Airtable. Create documentation for users explaining how to select and upload appropriate videos for each segment. Implement validation to ensure uploaded videos meet required specifications (format, resolution, duration). Develop error handling for cases where videos are missing or invalid. Create a user guide with examples of appropriate video selections for different types of content.
 
 ## 2. Set Up Airtable Database Structure [pending]
 ### Dependencies: None
