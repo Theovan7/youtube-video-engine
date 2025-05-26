@@ -18,6 +18,7 @@ kill_timeout = "5s"
   PORT = "8080"
   FLASK_ENV = "production"
   LOG_LEVEL = "INFO"
+  WEBHOOK_BASE_URL = "https://youtube-video-engine.fly.dev"
 
 [processes]
   app = "gunicorn --bind 0.0.0.0:8080 --workers 4 --timeout 120 app:app"

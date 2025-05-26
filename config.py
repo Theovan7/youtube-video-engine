@@ -135,6 +135,9 @@ class ProductionConfig(Config):
     
     # Production-specific settings
     LOG_LEVEL = 'WARNING'
+    
+    # Override webhook URL for production
+    WEBHOOK_BASE_URL = os.getenv('WEBHOOK_BASE_URL', 'https://youtube-video-engine.fly.dev')
 
 
 # Configuration dictionary
