@@ -216,7 +216,7 @@ class TestCombineSegmentMediaEndpoint:
         
         # Configure segment with required media
         segment_with_media = SAMPLE_SEGMENT_DATA.copy()
-        segment_with_media['fields']['Base Video'] = [{'url': 'https://example.com/base.mp4'}]
+        segment_with_media['fields']['Video'] = [{'url': 'https://example.com/base.mp4'}]
         segment_with_media['fields']['Voiceover'] = [{'url': 'https://example.com/voice.mp3'}]
         self.mock_airtable.get_segment.return_value = segment_with_media
         
@@ -257,7 +257,7 @@ class TestCombineSegmentMediaEndpoint:
         """Test combination when base video is missing."""
         segment_no_video = SAMPLE_SEGMENT_DATA.copy()
         segment_no_video['fields']['Voiceover'] = [{'url': 'https://example.com/voice.mp3'}]
-        # No Base Video field
+        # No Video field
         self.mock_airtable.get_segment.return_value = segment_no_video
         
         response = self.client.post('/api/v1/combine-segment-media', json={
@@ -267,12 +267,12 @@ class TestCombineSegmentMediaEndpoint:
         assert response.status_code == 400
         data = response.get_json()
         assert 'error' in data
-        assert 'base video' in data['error'].lower()
+        assert 'video' in data['error'].lower()
     
     def test_combine_media_missing_voiceover(self):
         """Test combination when voiceover is missing."""
         segment_no_voice = SAMPLE_SEGMENT_DATA.copy()
-        segment_no_voice['fields']['Base Video'] = [{'url': 'https://example.com/base.mp4'}]
+        segment_no_voice['fields']['Video'] = [{'url': 'https://example.com/base.mp4'}]
         # No Voiceover field
         self.mock_airtable.get_segment.return_value = segment_no_voice
         

@@ -18,7 +18,7 @@ class AirtableFieldMapper:
     ]
     
     VIDEO_FIELDS = [
-        "Video", "Video File", "Background Video", "Base Video",
+        "Video", "Video File", "Background Video",
         "Source Video", "Video Background", "Media", "Video Media",
         "Segment Video", "Video Attachment", "MP4 File", "Video Asset",
         "Video Clip", "Raw Video", "Original Video"

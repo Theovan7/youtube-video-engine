@@ -129,7 +129,8 @@ class AirtableService:
                     'SRT Text': segment['text'],  # Using SRT Text instead of Text
                     'Start Time': segment.get('start_time', i * self.config.DEFAULT_SEGMENT_DURATION),
                     'End Time': segment.get('end_time', (i + 1) * self.config.DEFAULT_SEGMENT_DURATION),
-                    # Note: Segments table doesn't have Order, Status, Voice ID, or Base Video fields
+                    # Note: Segments table doesn't have Order, Status, or Voice ID fields
+                    # Video field is where users upload background videos
                 }
                 
                 # Calculate timestamps in format "00:00:00.000 --> 00:00:00.000"

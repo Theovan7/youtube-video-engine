@@ -53,6 +53,7 @@ class GenerateVoiceoverSchema(Schema):
 class CombineSegmentMediaSchema(Schema):
     """Schema for combine segment media request."""
     segment_id = fields.String(required=True)
+    base_video_url = fields.String(required=True, validate=validate.URL())
 
 
 class CombineAllSegmentsSchema(Schema):
@@ -226,17 +227,14 @@ def combine_segment_media():
         if not segment:
             return jsonify({'error': 'Segment not found'}), 404
         
-        # Check if background video is ready
-        if 'Video' not in segment['fields'] or not segment['fields']['Video']:
-            return jsonify({'error': 'Background video not uploaded. Please upload a video to this segment in Airtable first.'}), 400
-        
         # Check if voiceover is ready
         if 'Voiceover' not in segment['fields'] or not segment['fields']['Voiceover']:
             return jsonify({'error': 'Voiceover not ready for this segment'}), 400
         
-        # Get URLs from existing fields
-        video_url = segment['fields']['Video'][0]['url']
-        voiceover_url = segment['fields']['Voiceover'][0]['url']
+        # Update segment with base video (Status field doesn't exist)
+        airtable.update_segment(data['segment_id'], {
+            'Base Video': [{'url': data['base_video_url']}]
+        })
         
         # Create job record
         job = airtable.create_job(
@@ -252,9 +250,12 @@ def combine_segment_media():
         # Initialize NCA service
         nca = NCAService()
         
+        # Get voiceover URL
+        voiceover_url = segment['fields']['Voiceover'][0]['url']
+        
         # Combine media
         result = nca.combine_audio_video(
-            video_url=video_url,
+            video_url=data['base_video_url'],
             audio_url=voiceover_url,
             output_filename=f"segment_{data['segment_id']}_combined.mp4",
             webhook_url=webhook_url
@@ -555,8 +556,8 @@ def get_video_segments(video_id):
             if 'Voiceover' in fields and fields['Voiceover']:
                 segment_data['voiceover_url'] = fields['Voiceover'][0]['url']
             
-            if 'Video' in fields and fields['Video']:
-                segment_data['base_video_url'] = fields['Video'][0]['url']
+            if 'Base Video' in fields and fields['Base Video']:
+                segment_data['base_video_url'] = fields['Base Video'][0]['url']
             
             if 'Combined' in fields and fields['Combined']:
                 segment_data['combined_url'] = fields['Combined'][0]['url']
