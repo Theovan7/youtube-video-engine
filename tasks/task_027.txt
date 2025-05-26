@@ -1,0 +1,107 @@
+# Task ID: 27
+# Title: Fix Field Mapping in Combine-Segment-Media Endpoint
+# Status: pending
+# Dependencies: 10, 26
+# Priority: high
+# Description: Update the combine-segment-media endpoint to read from the 'Video' field in Airtable instead of requiring a 'Base Video' field and base_video_url parameter, supporting the workflow where users manually upload background videos.
+# Details:
+1. Locate the combine-segment-media endpoint in the codebase:
+```python
+@app.route('/api/v1/combine-segment-media', methods=['POST'])
+def combine_segment_media():
+    data = request.json
+    segment_id = data.get('segment_id')
+    base_video_url = data.get('base_video_url')
+    
+    if not segment_id:
+        return jsonify({'error': 'Segment ID is required'}), 400
+    # ...
+```
+
+2. Modify the endpoint to read from the 'Video' field in Airtable instead of requiring the base_video_url parameter:
+```python
+@app.route('/api/v1/combine-segment-media', methods=['POST'])
+def combine_segment_media():
+    data = request.json
+    segment_id = data.get('segment_id')
+    
+    if not segment_id:
+        return jsonify({'error': 'Segment ID is required'}), 400
+        
+    # Get segment from Airtable
+    segment = SegmentModel().get(segment_id)
+    if not segment:
+        return jsonify({'error': f'Segment with ID {segment_id} not found'}), 404
+    
+    # Check if user has uploaded a video in the 'Video' field
+    user_video_url = segment.get('Video')
+    if not user_video_url:
+        return jsonify({'error': 'No video found for this segment. Please upload a video in Airtable.'}), 400
+    
+    # Use the user-uploaded video instead of requiring base_video_url
+    # Rest of the processing logic...
+```
+
+3. Update the NCA Toolkit integration service to handle the user-uploaded video URL:
+```python
+def combine_media(segment_id, voiceover_url):
+    segment = SegmentModel().get(segment_id)
+    video_url = segment.get('Video')
+    
+    # Call NCA Toolkit to combine the video with voiceover
+    response = requests.post(
+        f"{NCA_TOOLKIT_BASE_URL}/combine-media",
+        json={
+            'video_url': video_url,
+            'audio_url': voiceover_url,
+            'segment_id': segment_id
+        }
+    )
+    # ...
+```
+
+4. Update any related documentation to reflect this change:
+   - Remove references to 'Base Video' field
+   - Add instructions for users on how to upload videos to the 'Video' field in Airtable
+   - Update API documentation to remove the base_video_url parameter
+
+5. Ensure backward compatibility:
+   - Consider maintaining support for the base_video_url parameter as an optional fallback
+   - If base_video_url is provided, use it instead of looking for the 'Video' field
+   - Add deprecation notice for the base_video_url parameter
+
+6. Update any tests that rely on the old parameter structure.
+
+# Test Strategy:
+1. Unit Testing:
+   - Create unit tests for the updated endpoint with various scenarios:
+     - Test with a segment that has a 'Video' field populated
+     - Test with a segment that has no 'Video' field
+     - Test with both 'Video' field and base_video_url parameter to ensure correct precedence
+
+2. Integration Testing:
+   - Set up a test Airtable with segments that have the 'Video' field populated
+   - Make API calls to the combine-segment-media endpoint with only segment_id
+   - Verify that the endpoint correctly retrieves and uses the video from the 'Video' field
+   - Verify that the combined media is correctly generated and stored
+
+3. End-to-End Testing:
+   - Create a complete workflow test:
+     - Upload a video to the 'Video' field in Airtable for a segment
+     - Generate a voiceover for the segment
+     - Call the combine-segment-media endpoint
+     - Verify that the segment is correctly processed with the user-uploaded video
+
+4. Regression Testing:
+   - Ensure that existing workflows that might still use base_video_url continue to work
+   - Test the entire video generation pipeline to ensure this change doesn't break other components
+
+5. Manual Testing:
+   - Manually upload videos to Airtable
+   - Trigger the combine-segment-media process
+   - Visually inspect the resulting combined media to ensure quality
+
+6. Error Handling Testing:
+   - Test with invalid video URLs
+   - Test with unsupported video formats
+   - Verify appropriate error messages are returned

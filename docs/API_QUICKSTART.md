@@ -145,7 +145,13 @@ for segment in segments:
             break
         time.sleep(2)
 
-# Step 3: Combine media for each segment
+# Step 3: Upload background videos to Airtable
+# MANUAL STEP: Users must upload appropriate background videos 
+# to the 'Video' field in each segment record in Airtable
+print("Please upload background videos to each segment in Airtable before proceeding...")
+input("Press Enter when all videos have been uploaded...")
+
+# Step 4: Combine media for each segment
 for segment in segments:
     combine_response = requests.post(
         f"{BASE_URL}/api/v1/combine-segment-media",
@@ -153,14 +159,14 @@ for segment in segments:
     )
     # Wait for completion...
 
-# Step 4: Combine all segments
+# Step 5: Combine all segments
 combine_all_response = requests.post(
     f"{BASE_URL}/api/v1/combine-all-segments",
     json={"video_id": "recXXXXXXXXXXXXXX"}
 )
 # Wait for completion...
 
-# Step 5: Add background music
+# Step 6: Add background music
 music_response = requests.post(
     f"{BASE_URL}/api/v1/generate-and-add-music",
     json={

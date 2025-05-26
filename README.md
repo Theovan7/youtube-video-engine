@@ -105,6 +105,8 @@ Content-Type: application/json
 }
 ```
 
+**Note**: Before calling this endpoint, users must manually upload a background video to the `Video` field in the segment record in Airtable. This is a "user in the loop" process where human judgment is used to select appropriate videos for each segment.
+
 #### Combine All Segments
 ```http
 POST /api/v1/combine-all-segments
@@ -187,7 +189,7 @@ fly deploy
 - End Time (Number)
 - Duration (Formula)
 - Voice ID (Single line)
-- Base Video (Attachment)
+- Video (Attachment) - User uploads background videos here
 - Voiceover (Attachment)
 - Combined (Attachment)
 - Status (Single select)

@@ -142,12 +142,16 @@ ElevenLabs → Webhook → Update Segment → Store Audio URL
 ### 3. Video Assembly Flow
 
 ```
+User → Upload Background Video to 'Video' field in Airtable Segment
+  ↓
 Client → POST /api/v1/combine-segment-media
   ↓
-Fetch Segment Data → Call NCA Toolkit → Create Combination Job
+Fetch Segment Data (including user-uploaded video) → Call NCA Toolkit → Create Combination Job
   ↓
 NCA → Webhook → Update Segment → Store Combined Video URL
 ```
+
+**Note**: This is a "user in the loop" process. Background videos are not automatically generated. Users must manually select and upload appropriate videos to each segment before the combination step.
 
 ### 4. Final Production Flow
 
