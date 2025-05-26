@@ -1,0 +1,116 @@
+# Task ID: 26
+# Title: Complete YouTube Video Engine Production Setup
+# Status: pending
+# Dependencies: 25
+# Priority: high
+# Description: Set up the YouTube Video Engine for production including background videos, Airtable configuration, webhook registrations, end-to-end testing, and monitoring/error tracking systems.
+# Details:
+1. Set up background videos for segment combination testing:
+   - Create a library of at least 10 diverse background videos (different themes, durations)
+   - Upload videos to a CDN or cloud storage with public access
+   - Create a mapping file that categorizes videos by theme/mood
+   - Add reference to these videos in the configuration
+
+2. Configure Airtable linked fields in Jobs table:
+   - Add linked record fields in the Jobs table to connect to Videos and Segments tables
+   - Create lookup fields to display relevant information from linked records
+   - Set up formula fields to calculate job duration and other metrics
+   - Configure views for different job statuses (pending, in-progress, completed, failed)
+
+3. Register webhook URLs with external services:
+   - ElevenLabs: Register the `/webhooks/elevenlabs` endpoint for voiceover completion notifications
+   - NCA Toolkit: Register the `/webhooks/nca` endpoint for video processing notifications
+   - GoAPI: Register the `/webhooks/goapi` endpoint for music generation notifications
+   - Update environment variables with any necessary API keys or tokens
+   - Verify webhook security with shared secrets or signature validation
+
+4. Run full end-to-end pipeline tests:
+   - Create test scripts that exercise the complete video generation pipeline
+   - Test with various input scripts of different lengths and complexities
+   - Verify all webhook integrations are functioning correctly
+   - Measure and optimize processing times for each stage
+   - Document any edge cases or limitations discovered
+
+5. Set up monitoring and error tracking:
+   - Configure UptimeRobot or Pingdom to monitor API endpoints
+   - Set up alerts for service disruptions or performance degradation
+   - Implement Sentry for error tracking and exception monitoring
+   - Add appropriate logging throughout the application
+   - Create a dashboard for visualizing system health and job statuses
+
+6. Final production checklist:
+   - Verify all API endpoints are properly documented
+   - Ensure rate limiting is configured for public endpoints
+   - Check that all environment variables are properly set
+   - Verify backup and recovery procedures
+   - Document operational procedures for common issues
+
+# Test Strategy:
+1. Background Video Testing:
+   - Verify all background videos are accessible via their URLs
+   - Test video playback in different browsers and devices
+   - Confirm videos meet quality standards and are appropriate for the intended use
+   - Validate the mapping file correctly categorizes all videos
+
+2. Airtable Configuration Testing:
+   - Create test records in the Jobs table and verify linked fields work correctly
+   - Test that updates to linked records are properly reflected
+   - Verify formula fields calculate correct values
+   - Test filtering and sorting in custom views
+
+3. Webhook Registration Testing:
+   - Send test events from each external service to verify webhook reception
+   - Verify proper handling of webhook payloads
+   - Test error handling for malformed webhook requests
+   - Confirm webhook security measures are effective
+
+4. End-to-End Pipeline Testing:
+   - Create a test script and track it through the entire pipeline
+   - Measure processing time at each stage
+   - Verify final video output meets quality standards
+   - Test recovery from failures at various stages
+   - Run concurrent jobs to test system under load
+
+5. Monitoring and Error Tracking Testing:
+   - Trigger test alerts in UptimeRobot/Pingdom
+   - Verify Sentry captures and reports errors correctly
+   - Test logging by reviewing log output for various scenarios
+   - Verify email/SMS notifications are sent for critical issues
+
+6. Final Verification:
+   - Conduct a security review of all exposed endpoints
+   - Perform load testing to determine system capacity
+   - Verify all documentation is up-to-date
+   - Create a test plan for ongoing regression testing
+
+# Subtasks:
+## 1. Create and Configure Background Video Library [pending]
+### Dependencies: None
+### Description: Build a library of diverse background videos, upload them to cloud storage, and create a mapping system for the video engine to reference.
+### Details:
+Create at least 10 background videos with different themes (nature, urban, abstract, etc.) and durations (30s to 2min). Upload these to AWS S3 or similar cloud storage with public access enabled. Create a JSON mapping file that categorizes videos by theme, mood, duration, and provides direct URLs. Update the configuration files in the video engine to reference this mapping file.
+
+## 2. Set Up Airtable Database Structure [pending]
+### Dependencies: None
+### Description: Configure the Airtable database with appropriate linked fields, lookups, formulas, and views to manage the video production pipeline.
+### Details:
+In Airtable, create linked record fields in the Jobs table to connect to Videos and Segments tables. Add lookup fields to display video titles, segment counts, and other relevant information. Implement formula fields to calculate total job duration, completion percentage, and time estimates. Create filtered views for different job statuses (pending, in-progress, completed, failed) and set up appropriate sorting and grouping.
+
+## 3. Register and Secure External Service Webhooks [pending]
+### Dependencies: None
+### Description: Register webhook endpoints with all external services and implement proper security measures for webhook communication.
+### Details:
+Register the following webhook endpoints with their respective services: ElevenLabs (/webhooks/elevenlabs), NCA Toolkit (/webhooks/nca), and GoAPI (/webhooks/goapi). Implement webhook security using shared secrets or signature validation for each service. Update environment variables with necessary API keys and webhook secrets. Create webhook handlers that validate incoming requests before processing.
+
+## 4. Implement End-to-End Testing Pipeline [pending]
+### Dependencies: 26.1, 26.2, 26.3
+### Description: Create comprehensive test scripts that validate the entire video generation process from input to final output.
+### Details:
+Develop automated test scripts that exercise the complete video generation pipeline. Create test cases with various input scripts of different lengths, complexities, and themes. Implement timing measurements for each stage of the pipeline to identify bottlenecks. Document the testing process, expected outcomes, and any edge cases discovered. Create a test report template for future test runs.
+
+## 5. Deploy Monitoring and Error Tracking Systems [pending]
+### Dependencies: 26.4
+### Description: Set up comprehensive monitoring, alerting, and error tracking for the production environment.
+### Details:
+Configure UptimeRobot or Pingdom to monitor all API endpoints with 5-minute check intervals. Set up Sentry for error tracking and configure it to capture exceptions across all services. Implement structured logging throughout the application using a consistent format. Create a dashboard (using Grafana or similar) that visualizes system health, job statuses, and processing metrics. Configure alerts for service disruptions, performance degradation, or high error rates to be sent via email and Slack.
+

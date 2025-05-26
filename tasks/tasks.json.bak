@@ -364,59 +364,7 @@
         25
       ],
       "priority": "high",
-      "subtasks": [
-        {
-          "id": 1,
-          "title": "Create and Configure Background Video Library",
-          "description": "Build a library of diverse background videos, upload them to cloud storage, and create a mapping system for the video engine to reference.",
-          "dependencies": [],
-          "details": "Create at least 10 background videos with different themes (nature, urban, abstract, etc.) and durations (30s to 2min). Upload these to AWS S3 or similar cloud storage with public access enabled. Create a JSON mapping file that categorizes videos by theme, mood, duration, and provides direct URLs. Update the configuration files in the video engine to reference this mapping file.",
-          "status": "pending",
-          "testStrategy": "Verify all videos are accessible via their URLs. Test the mapping file by requesting videos of specific themes/moods and confirm appropriate videos are returned."
-        },
-        {
-          "id": 2,
-          "title": "Set Up Airtable Database Structure",
-          "description": "Configure the Airtable database with appropriate linked fields, lookups, formulas, and views to manage the video production pipeline.",
-          "dependencies": [],
-          "details": "In Airtable, create linked record fields in the Jobs table to connect to Videos and Segments tables. Add lookup fields to display video titles, segment counts, and other relevant information. Implement formula fields to calculate total job duration, completion percentage, and time estimates. Create filtered views for different job statuses (pending, in-progress, completed, failed) and set up appropriate sorting and grouping.",
-          "status": "pending",
-          "testStrategy": "Create test records in each table and verify that linked fields, lookups, and formulas display correct information. Test that views properly filter and display jobs based on their status."
-        },
-        {
-          "id": 3,
-          "title": "Register and Secure External Service Webhooks",
-          "description": "Register webhook endpoints with all external services and implement proper security measures for webhook communication.",
-          "dependencies": [],
-          "details": "Register the following webhook endpoints with their respective services: ElevenLabs (/webhooks/elevenlabs), NCA Toolkit (/webhooks/nca), and GoAPI (/webhooks/goapi). Implement webhook security using shared secrets or signature validation for each service. Update environment variables with necessary API keys and webhook secrets. Create webhook handlers that validate incoming requests before processing.",
-          "status": "pending",
-          "testStrategy": "Send test webhook payloads to each endpoint and verify proper handling. Test security by sending invalid signatures or missing authentication and confirm requests are rejected."
-        },
-        {
-          "id": 4,
-          "title": "Implement End-to-End Testing Pipeline",
-          "description": "Create comprehensive test scripts that validate the entire video generation process from input to final output.",
-          "dependencies": [
-            1,
-            2,
-            3
-          ],
-          "details": "Develop automated test scripts that exercise the complete video generation pipeline. Create test cases with various input scripts of different lengths, complexities, and themes. Implement timing measurements for each stage of the pipeline to identify bottlenecks. Document the testing process, expected outcomes, and any edge cases discovered. Create a test report template for future test runs.",
-          "status": "pending",
-          "testStrategy": "Run the test suite against the production environment with monitoring enabled. Verify all components interact correctly and final videos are generated as expected. Document processing times and success rates."
-        },
-        {
-          "id": 5,
-          "title": "Deploy Monitoring and Error Tracking Systems",
-          "description": "Set up comprehensive monitoring, alerting, and error tracking for the production environment.",
-          "dependencies": [
-            4
-          ],
-          "details": "Configure UptimeRobot or Pingdom to monitor all API endpoints with 5-minute check intervals. Set up Sentry for error tracking and configure it to capture exceptions across all services. Implement structured logging throughout the application using a consistent format. Create a dashboard (using Grafana or similar) that visualizes system health, job statuses, and processing metrics. Configure alerts for service disruptions, performance degradation, or high error rates to be sent via email and Slack.",
-          "status": "pending",
-          "testStrategy": "Trigger test errors and verify they are properly captured in Sentry. Temporarily disable services to confirm monitoring alerts are triggered. Review logs and dashboards to ensure all relevant information is being captured and displayed."
-        }
-      ]
+      "subtasks": []
     }
   ]
 }
