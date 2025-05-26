@@ -2,6 +2,7 @@
 
 import logging
 import requests
+import uuid
 from typing import Dict, Optional, List
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -88,13 +89,30 @@ class ElevenLabsService:
             
             if webhook_url:
                 # Use async endpoint with webhook
-                payload['webhook_url'] = webhook_url
-                endpoint = f"{self.base_url}/text-to-speech/{voice_id}/stream"
+                # Note: The webhook should be passed as query parameter for async TTS
+                endpoint = f"{self.base_url}/text-to-speech/{voice_id}?enable_logging=true"
+                headers = {
+                    'xi-api-key': self.api_key,
+                    'Content-Type': 'application/json'
+                }
                 
-                response = self.session.post(endpoint, json=payload)
+                # Add webhook callback info
+                payload['webhook_url'] = webhook_url
+                payload['webhook_method'] = 'POST'
+                
+                response = self.session.post(
+                    endpoint, 
+                    json=payload,
+                    headers=headers
+                )
                 response.raise_for_status()
                 
-                result = response.json()
+                # For async requests with webhook, response includes job information
+                result = {
+                    'job_id': response.headers.get('request-id', str(uuid.uuid4())),
+                    'status': 'processing',
+                    'webhook_url': webhook_url
+                }
             else:
                 # Use sync endpoint
                 endpoint = f"{self.base_url}/text-to-speech/{voice_id}"
