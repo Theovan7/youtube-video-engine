@@ -66,10 +66,26 @@ def elevenlabs_webhook():
             if not job:
                 raise ValueError(f"Job {job_id} not found")
             
-            # Get segment ID from job
-            segment_id = job['fields'].get('Related Segment', [None])[0]
+            # Get segment ID from job - try Segments field first, fallback to Request Payload
+            segment_id = None
+            
+            # Try to get from Segments field (correct field name)
+            if 'Segments' in job['fields'] and job['fields']['Segments']:
+                segment_id = job['fields']['Segments'][0]
+            else:
+                # Fallback: Extract from Request Payload
+                request_payload = job['fields'].get('Request Payload', '{}')
+                try:
+                    # Parse the payload (it's stored as string representation of dict)
+                    import ast
+                    payload_data = ast.literal_eval(request_payload)
+                    segment_id = payload_data.get('record_id') or payload_data.get('segment_id')
+                except Exception as e:
+                    logger.error(f"Failed to parse Request Payload: {e}")
+                    segment_id = None
+            
             if not segment_id:
-                raise ValueError("No segment ID found in job")
+                raise ValueError("No segment ID found in job - check Segments field or Request Payload")
             
             # Process webhook based on status
             if payload.get('status') == 'completed':
@@ -187,8 +203,23 @@ def nca_toolkit_webhook():
                     raise ValueError("No output URL in webhook payload")
                 
                 if operation == 'combine':
-                    # Handle segment combination
-                    segment_id = job['fields'].get('Related Segment', [None])[0]
+                    # Handle segment combination - get segment ID with fallback
+                    segment_id = None
+                    
+                    # Try to get from Segments field (correct field name)
+                    if 'Segments' in job['fields'] and job['fields']['Segments']:
+                        segment_id = job['fields']['Segments'][0]
+                    else:
+                        # Fallback: Extract from Request Payload
+                        request_payload = job['fields'].get('Request Payload', '{}')
+                        try:
+                            import ast
+                            payload_data = ast.literal_eval(request_payload)
+                            segment_id = payload_data.get('record_id') or payload_data.get('segment_id')
+                        except Exception as e:
+                            logger.error(f"Failed to parse Request Payload for segment ID: {e}")
+                            segment_id = None
+                    
                     if not segment_id:
                         raise ValueError("No segment ID found in job")
                     
@@ -201,8 +232,23 @@ def nca_toolkit_webhook():
                     logger.info(f"Successfully combined media for segment {segment_id}")
                     
                 elif operation == 'concatenate':
-                    # Handle video concatenation
-                    video_id = job['fields'].get('Related Video', [None])[0]
+                    # Handle video concatenation - get video ID with fallback
+                    video_id = None
+                    
+                    # Try to get from Related Video field (if it exists)
+                    if 'Related Video' in job['fields'] and job['fields']['Related Video']:
+                        video_id = job['fields']['Related Video'][0]
+                    else:
+                        # Fallback: Extract from Request Payload
+                        request_payload = job['fields'].get('Request Payload', '{}')
+                        try:
+                            import ast
+                            payload_data = ast.literal_eval(request_payload)
+                            video_id = payload_data.get('record_id') or payload_data.get('video_id')
+                        except Exception as e:
+                            logger.error(f"Failed to parse Request Payload for video ID: {e}")
+                            video_id = None
+                    
                     if not video_id:
                         raise ValueError("No video ID found in job")
                     
@@ -215,8 +261,23 @@ def nca_toolkit_webhook():
                     logger.info(f"Successfully concatenated segments for video {video_id}")
                     
                 elif operation == 'add_music':
-                    # Handle music addition
-                    video_id = job['fields'].get('Related Video', [None])[0]
+                    # Handle music addition - get video ID with fallback
+                    video_id = None
+                    
+                    # Try to get from Related Video field (if it exists)
+                    if 'Related Video' in job['fields'] and job['fields']['Related Video']:
+                        video_id = job['fields']['Related Video'][0]
+                    else:
+                        # Fallback: Extract from Request Payload
+                        request_payload = job['fields'].get('Request Payload', '{}')
+                        try:
+                            import ast
+                            payload_data = ast.literal_eval(request_payload)
+                            video_id = payload_data.get('record_id') or payload_data.get('video_id')
+                        except Exception as e:
+                            logger.error(f"Failed to parse Request Payload for video ID: {e}")
+                            video_id = None
+                    
                     if not video_id:
                         raise ValueError("No video ID found in job")
                     
@@ -245,11 +306,35 @@ def nca_toolkit_webhook():
                 
                 # Update entity status based on operation
                 if operation == 'combine':
-                    segment_id = job['fields'].get('Related Segment', [None])[0]
+                    # Get segment ID with fallback for failure handling
+                    segment_id = None
+                    if 'Segments' in job['fields'] and job['fields']['Segments']:
+                        segment_id = job['fields']['Segments'][0]
+                    else:
+                        request_payload = job['fields'].get('Request Payload', '{}')
+                        try:
+                            import ast
+                            payload_data = ast.literal_eval(request_payload)
+                            segment_id = payload_data.get('record_id') or payload_data.get('segment_id')
+                        except:
+                            segment_id = None
+                    
                     if segment_id:
                         airtable.update_segment(segment_id, {'Status': 'combination_failed'})
                 elif operation in ['concatenate', 'add_music']:
-                    video_id = job['fields'].get('Related Video', [None])[0]
+                    # Get video ID with fallback for failure handling
+                    video_id = None
+                    if 'Related Video' in job['fields'] and job['fields']['Related Video']:
+                        video_id = job['fields']['Related Video'][0]
+                    else:
+                        request_payload = job['fields'].get('Request Payload', '{}')
+                        try:
+                            import ast
+                            payload_data = ast.literal_eval(request_payload)
+                            video_id = payload_data.get('record_id') or payload_data.get('video_id')
+                        except:
+                            video_id = None
+                    
                     if video_id:
                         status = 'concatenation_failed' if operation == 'concatenate' else 'music_addition_failed'
                         airtable.update_video_status(video_id, status, error_message)
@@ -316,8 +401,23 @@ def goapi_webhook():
             if not job:
                 raise ValueError(f"Job {job_id} not found")
             
-            # Get video ID from job
-            video_id = job['fields'].get('Related Video', [None])[0]
+            # Get video ID from job with fallback
+            video_id = None
+            
+            # Try to get from Related Video field (if it exists)
+            if 'Related Video' in job['fields'] and job['fields']['Related Video']:
+                video_id = job['fields']['Related Video'][0]
+            else:
+                # Fallback: Extract from Request Payload
+                request_payload = job['fields'].get('Request Payload', '{}')
+                try:
+                    import ast
+                    payload_data = ast.literal_eval(request_payload)
+                    video_id = payload_data.get('record_id') or payload_data.get('video_id')
+                except Exception as e:
+                    logger.error(f"Failed to parse Request Payload for video ID: {e}")
+                    video_id = None
+            
             if not video_id:
                 raise ValueError("No video ID found in job")
             
@@ -387,11 +487,28 @@ def goapi_webhook():
                 }), 200
                 
             elif payload.get('status') == 'failed':
+                # Handle failure - get video ID with fallback for failure handling
+                video_id = None
+                
+                # Try to get from Related Video field (if it exists)
+                if 'Related Video' in job['fields'] and job['fields']['Related Video']:
+                    video_id = job['fields']['Related Video'][0]
+                else:
+                    # Fallback: Extract from Request Payload
+                    request_payload = job['fields'].get('Request Payload', '{}')
+                    try:
+                        import ast
+                        payload_data = ast.literal_eval(request_payload)
+                        video_id = payload_data.get('record_id') or payload_data.get('video_id')
+                    except:
+                        video_id = None
+                
                 # Handle failure
                 error_message = payload.get('error', {}).get('message', 'Unknown error')
                 
-                # Update video status
-                airtable.update_video_status(video_id, 'music_generation_failed', error_message)
+                # Update video status if we have video_id
+                if video_id:
+                    airtable.update_video_status(video_id, 'music_generation_failed', error_message)
                 
                 # Fail job
                 airtable.fail_job(job_id, error_message)

@@ -79,6 +79,7 @@ class Config:
     # Airtable Table Names
     VIDEOS_TABLE = 'Videos'
     SEGMENTS_TABLE = 'Segments'
+    VOICES_TABLE = 'Voices'
     JOBS_TABLE = 'Jobs'
     WEBHOOK_EVENTS_TABLE = 'Webhook Events'
     

@@ -53,6 +53,7 @@ class AirtableService:
         # Table references
         self.videos_table = self.base.table(self.config.VIDEOS_TABLE)
         self.segments_table = self.base.table(self.config.SEGMENTS_TABLE)
+        self.voices_table = self.base.table(self.config.VOICES_TABLE)
         self.jobs_table = self.base.table(self.config.JOBS_TABLE)
         self.webhook_events_table = self.base.table(self.config.WEBHOOK_EVENTS_TABLE)
     
@@ -184,6 +185,16 @@ class AirtableService:
             return segments
         except Exception as e:
             api_logger.log_error('airtable', e, {'operation': 'get_video_segments', 'video_id': video_id})
+            raise
+    
+    # Voice operations
+    def get_voice(self, voice_id: str) -> Dict:
+        """Get a voice record by ID."""
+        try:
+            record = self.voices_table.get(voice_id)
+            return record
+        except Exception as e:
+            api_logger.log_error('airtable', e, {'operation': 'get_voice', 'voice_id': voice_id})
             raise
     
     # Job operations
