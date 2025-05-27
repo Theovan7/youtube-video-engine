@@ -1,0 +1,102 @@
+{
+  "performance_benchmarks": {
+    "response_times": {
+      "health_check_max": 2.0,
+      "health_check_target": 1.0,
+      "api_endpoint_max": 10.0,
+      "api_endpoint_target": 5.0,
+      "webhook_processing_max": 5.0,
+      "webhook_processing_target": 2.0
+    },
+    "throughput": {
+      "concurrent_requests_min": 10,
+      "concurrent_requests_target": 50,
+      "requests_per_minute_min": 100,
+      "requests_per_minute_target": 500
+    },
+    "processing_times": {
+      "script_processing_per_1000_chars_max": 5.0,
+      "script_processing_per_1000_chars_target": 2.0,
+      "voiceover_generation_max": 180.0,
+      "voiceover_generation_target": 60.0,
+      "media_combination_max": 300.0,
+      "media_combination_target": 120.0,
+      "video_concatenation_max": 600.0,
+      "video_concatenation_target": 300.0,
+      "music_generation_max": 300.0,
+      "music_generation_target": 120.0
+    },
+    "reliability": {
+      "success_rate_min": 0.95,
+      "success_rate_target": 0.99,
+      "error_rate_max": 0.05,
+      "error_rate_target": 0.01,
+      "webhook_delivery_rate_min": 0.98,
+      "webhook_delivery_rate_target": 0.999
+    },
+    "resource_usage": {
+      "memory_usage_max_mb": 512,
+      "memory_usage_target_mb": 256,
+      "cpu_usage_max_percent": 80,
+      "cpu_usage_target_percent": 50
+    }
+  },
+  "test_configurations": {
+    "simple_test": {
+      "script_length_chars": 500,
+      "expected_segments": 2,
+      "target_duration_seconds": 30,
+      "timeout_seconds": 300
+    },
+    "medium_test": {
+      "script_length_chars": 2000,
+      "expected_segments": 8,
+      "target_duration_seconds": 25,
+      "timeout_seconds": 600
+    },
+    "complex_test": {
+      "script_length_chars": 5000,
+      "expected_segments": 15,
+      "target_duration_seconds": 35,
+      "timeout_seconds": 1200
+    },
+    "load_test": {
+      "concurrent_users": 10,
+      "requests_per_user": 5,
+      "ramp_up_time_seconds": 30,
+      "test_duration_seconds": 300
+    }
+  },
+  "monitoring_thresholds": {
+    "alerts": {
+      "response_time_p95_ms": 10000,
+      "error_rate_percent": 5,
+      "availability_percent": 99,
+      "job_failure_rate_percent": 10
+    },
+    "critical": {
+      "response_time_p95_ms": 30000,
+      "error_rate_percent": 20,
+      "availability_percent": 95,
+      "job_failure_rate_percent": 25
+    }
+  },
+  "test_data": {
+    "sample_scripts": {
+      "short": "Welcome to our tutorial. Today we'll learn about AI. Artificial intelligence is transforming technology. Thank you for watching.",
+      "medium": "Welcome to our comprehensive guide on machine learning. In this tutorial series, we'll explore the fundamentals of artificial intelligence and its practical applications. First, let's understand what machine learning means and how it differs from traditional programming approaches. Machine learning enables computers to learn patterns from data without explicit programming. There are three main types: supervised learning, unsupervised learning, and reinforcement learning. Each type has specific use cases and applications. Supervised learning uses labeled data to train models that can make predictions on new, unseen data. Common applications include image recognition, spam detection, and recommendation systems. Thank you for joining us in this learning journey.",
+      "long": "Welcome to our advanced series on artificial intelligence and machine learning technologies. This comprehensive course will cover everything from basic concepts to cutting-edge implementations in modern software systems. Artificial intelligence represents one of the most significant technological advances of our time, revolutionizing industries from healthcare to finance, transportation to entertainment. Machine learning, a subset of artificial intelligence, enables computers to learn and improve from experience without being explicitly programmed for every possible scenario. Deep learning, which uses neural networks with multiple layers, has achieved remarkable breakthroughs in image recognition, natural language processing, and game playing. Convolutional neural networks excel at image processing tasks, while recurrent neural networks are particularly effective for sequential data like text and time series. Transformer architectures have revolutionized natural language processing, enabling the development of large language models that can understand and generate human-like text. The applications of these technologies are virtually limitless, spanning autonomous vehicles, medical diagnosis, financial analysis, content creation, and scientific research. As we continue to advance these technologies, it's crucial to consider ethical implications, bias mitigation, and responsible AI development practices. Thank you for embarking on this comprehensive exploration of artificial intelligence with us."
+    },
+    "voice_ids": {
+      "default": "EXAVITQu4vr4xnSDxMaL",
+      "alternative": "21m00Tcm4TlvDq8ikWAM",
+      "narration": "AZnzlk1XvdvUeBnXmlld"
+    },
+    "music_prompts": {
+      "tech": "Upbeat electronic music with synthesizers and digital sounds",
+      "corporate": "Professional background music with subtle piano and strings",
+      "educational": "Calm and focused ambient music with gentle melodies",
+      "energetic": "High-energy music with drums and motivating rhythm"
+    }
+  }
+}

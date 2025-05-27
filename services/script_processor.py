@@ -70,6 +70,33 @@ class ScriptProcessor:
         
         return segments_with_timing
     
+    def process_script_by_newlines(self, script: str) -> List[Segment]:
+        """
+        Process a script into timed segments by splitting on newlines.
+        
+        Args:
+            script: The script text to process
+            
+        Returns:
+            List of Segment objects
+        """
+        if not script or not script.strip():
+            raise ValueError("Script cannot be empty")
+        
+        # Normalize line endings (handle Windows \r\n and Unix \n)
+        script = script.replace('\r\n', '\n').replace('\r', '\n')
+        
+        # Split by newlines and filter out empty lines
+        lines = script.strip().split('\n')
+        segments = [line.strip() for line in lines if line.strip()]
+        
+        # Calculate timings for each segment
+        segments_with_timing = self._calculate_timings(segments)
+        
+        logger.info(f"Processed script into {len(segments_with_timing)} segments using newline segmentation")
+        
+        return segments_with_timing
+    
     def _clean_script(self, script: str) -> str:
         """Clean and normalize script text."""
         # Remove extra whitespace

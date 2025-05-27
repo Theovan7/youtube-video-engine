@@ -7,15 +7,21 @@ from flask_cors import CORS
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-from config import get_config
+from config import get_config, Config
 from api.routes import api_bp
 from api.webhooks import webhooks_bp
 from utils.logger import setup_logging
 from flask_swagger_ui import get_swaggerui_blueprint
+from utils.metrics import MetricsCollector
+from datetime import datetime
+import time
 
 # Setup logging
 setup_logging()
 logger = logging.getLogger(__name__)
+
+# Global metrics collector
+metrics_collector = MetricsCollector()
 
 
 def create_app(config_name=None):
@@ -26,6 +32,9 @@ def create_app(config_name=None):
     # Load configuration
     config_obj = get_config(config_name)()
     app.config.from_object(config_obj)
+    
+    # Initialize Sentry for error tracking
+    Config.init_sentry(config_name or os.getenv('FLASK_ENV', 'development'))
     
     # Initialize CORS
     CORS(app, resources={r"/api/*": {"origins": "*"}})
@@ -66,6 +75,31 @@ def create_app(config_name=None):
     )
     
     app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
+    
+    # Metrics collection middleware
+    @app.before_request
+    def before_request():
+        """Record request start time."""
+        app.request_start_time = time.time()
+    
+    @app.after_request
+    def after_request(response):
+        """Record request metrics."""
+        if hasattr(app, 'request_start_time'):
+            response_time = time.time() - app.request_start_time
+            success = response.status_code < 400
+            
+            if app.config.get('ENABLE_METRICS', True):
+                metrics_collector.record_request(success, response_time)
+        
+        return response
+    
+    # Metrics endpoint
+    @app.route('/metrics')
+    @limiter.exempt
+    def metrics():
+        """Prometheus-style metrics endpoint."""
+        return jsonify(metrics_collector.get_metrics_summary())
     
     # Health check endpoint
     @app.route('/health')

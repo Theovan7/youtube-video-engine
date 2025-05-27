@@ -1,8 +1,12 @@
 """Configuration management for YouTube Video Engine."""
 
 import os
+import logging
 from typing import List
 from dotenv import load_dotenv
+import sentry_sdk
+from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 # Load environment variables from .env file
 load_dotenv()
@@ -103,6 +107,61 @@ class Config:
     # GoAPI webhook validation
     WEBHOOK_VALIDATION_GOAPI_ENABLED = os.getenv('WEBHOOK_VALIDATION_GOAPI_ENABLED', 'False').lower() == 'true'
     WEBHOOK_SECRET_GOAPI = os.getenv('WEBHOOK_SECRET_GOAPI', '')
+    
+    # Monitoring and Error Tracking Configuration
+    SENTRY_DSN = os.getenv('SENTRY_DSN')
+    SENTRY_ENVIRONMENT = os.getenv('SENTRY_ENVIRONMENT', 'development')
+    SENTRY_RELEASE = os.getenv('SENTRY_RELEASE', '1.0.0')
+    
+    # Slack Notifications
+    SLACK_WEBHOOK_URL = os.getenv('SLACK_WEBHOOK_URL')
+    
+    # Metrics Collection
+    ENABLE_METRICS = os.getenv('ENABLE_METRICS', 'True').lower() == 'true'
+    METRICS_RETENTION_HOURS = int(os.getenv('METRICS_RETENTION_HOURS', '24'))
+    
+    @staticmethod
+    def filter_sentry_events(event, hint):
+        """Filter Sentry events to reduce noise."""
+        # Don't send health check errors
+        if 'health' in event.get('request', {}).get('url', ''):
+            return None
+            
+        # Don't send 404 errors for static assets
+        if event.get('response', {}).get('status_code') == 404:
+            url = event.get('request', {}).get('url', '')
+            if any(ext in url for ext in ['.css', '.js', '.ico', '.png', '.jpg']):
+                return None
+                
+        return event
+    
+    @staticmethod
+    def init_sentry(environment='development'):
+        """Initialize Sentry error tracking."""
+        sentry_dsn = os.getenv('SENTRY_DSN')
+        
+        if sentry_dsn:
+            sentry_logging = LoggingIntegration(
+                level=logging.INFO,        # Capture info and above as breadcrumbs
+                event_level=logging.ERROR  # Send errors as events
+            )
+            
+            sentry_sdk.init(
+                dsn=sentry_dsn,
+                integrations=[
+                    FlaskIntegration(transaction_style='endpoint'),
+                    sentry_logging,
+                ],
+                environment=environment,
+                release=os.getenv('SENTRY_RELEASE', '1.0.0'),
+                traces_sample_rate=0.1,  # 10% of transactions for performance monitoring
+                profiles_sample_rate=0.1,  # 10% for profiling
+                before_send=Config.filter_sentry_events,
+            )
+            
+            print(f"✅ Sentry initialized for environment: {environment}")
+        else:
+            print("⚠️ Sentry DSN not configured - error tracking disabled")
 
 
 class DevelopmentConfig(Config):
