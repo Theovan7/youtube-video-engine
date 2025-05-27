@@ -1,0 +1,70 @@
+YOUTUBE VIDEO ENGINE - TROUBLESHOOTING NOTES
+===============================================
+
+[2025-05-27] ERROR ANALYSIS - API Endpoint "Not Found" Issue
+-----------------------------------------------------------
+
+**ERROR DEFINITION:**
+- Error Type: HTTP 404 Not Found
+- Affected Endpoint: /api/v2/process-script 
+- Function: process_script_webhook() in api/routes.py
+- Tech Stack Component: Flask API routing
+- Screenshot shows script making POST request with record_id: "recTH9JqTgkvlh4"
+
+**ERROR STATUS:** 
+- This appears to be a new error (first time documented)
+
+**ROOT CAUSE ANALYSIS:**
+
+1. **URL Routing Issue (Primary):**
+   - In app.py, the API blueprint is registered with prefix '/api/v1': 
+     ```python
+     app.register_blueprint(api_bp, url_prefix='/api/v1')
+     ```
+   - The route is defined as '/v2/process-script' in routes.py
+   - This creates the full path: /api/v1/v2/process-script
+   - But the script is calling: /api/v2/process-script (missing the v1 prefix)
+   - **CORRECT URL should be: /api/v1/v2/process-script**
+
+2. **Data Issue (Secondary):**
+   - Record ID "recTH9JqTgkvlh4" does not exist in Airtable Videos table
+   - This would cause a separate 404 error within the function if the URL issue was fixed
+   - The process_script_webhook() function checks for video record existence and returns 404 if not found
+
+**DETAILED INVESTIGATION:**
+- **Airtable Structure:** Confirmed Videos table exists with correct Record ID field
+- **API Endpoint:** Confirmed /v2/process-script route exists in routes.py
+- **Blueprint Registration:** Confirmed issue with URL prefix mismatch
+- **Record Verification:** Record "recTH9JqTgkvlh4" not found in Videos table
+
+**SOLUTION RECOMMENDATIONS:**
+
+**Option 1 (Quick Fix) - Update Script URL:**
+- Change webhook script URL from:
+  `https://youtube-video-engine.fly.dev/api/v2/process-script`
+- To:
+  `https://youtube-video-engine.fly.dev/api/v1/v2/process-script`
+
+**Option 2 (Better Fix) - Fix Blueprint Registration:**
+- Modify app.py to register the v2 endpoint correctly:
+  ```python
+  # Add a separate blueprint for v2 endpoints
+  app.register_blueprint(api_bp, url_prefix='/api/v2')
+  ```
+- Or rename the route in routes.py from '/v2/process-script' to '/process-script'
+
+**Option 3 (Clean Architecture) - Restructure API Versioning:**
+- Create separate blueprints for v1 and v2 endpoints
+- Register them with appropriate prefixes
+
+**IMMEDIATE NEXT STEPS:**
+1. Verify the record ID exists in Airtable before testing URL fix
+2. Test with Option 1 (Quick Fix) first
+3. Consider implementing Option 3 for long-term maintainability
+
+**VERIFICATION REQUIRED:**
+- Confirm record "recTH9JqTgkvlh4" should exist or get correct record ID
+- Test corrected URL endpoint
+- Verify webhook integration end-to-end
+
+---

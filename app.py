@@ -9,6 +9,7 @@ from flask_limiter.util import get_remote_address
 
 from config import get_config, Config
 from api.routes import api_bp
+from api.routes_v2 import api_v2_bp
 from api.webhooks import webhooks_bp
 from utils.logger import setup_logging
 from flask_swagger_ui import get_swaggerui_blueprint
@@ -49,6 +50,7 @@ def create_app(config_name=None):
     
     # Register blueprints
     app.register_blueprint(api_bp, url_prefix='/api/v1')
+    app.register_blueprint(api_v2_bp, url_prefix='/api/v2')
     app.register_blueprint(webhooks_bp, url_prefix='/webhooks')
     
     # Setup Swagger UI
