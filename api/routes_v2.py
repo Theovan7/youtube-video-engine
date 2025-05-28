@@ -1,6 +1,10 @@
-"""API v2 routes for YouTube Video Engine - Webhook-based architecture."""
+"""API v2 routes for YouTube Video Engine - Hybrid architecture with direct ElevenLabs processing."""
 
 import logging
+import requests
+import base64
+import json
+from datetime import datetime
 from flask import Blueprint, jsonify, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -50,6 +54,15 @@ class CombineAllSegmentsWebhookSchema(Schema):
 class GenerateAndAddMusicWebhookSchema(Schema):
     """Schema for webhook-based generate and add music request."""
     record_id = fields.String(required=True)
+
+
+class GenerateAIImageWebhookSchema(Schema):
+    """Schema for webhook-based generate AI image request."""
+    segment_id = fields.String(required=True)
+    size = fields.String(required=False, missing='1024x1536', 
+                         validate=lambda x: x in ['1024x1024', '1024x1536', '1536x1024', 'auto'])
+    quality = fields.String(required=False, missing='high',
+                           validate=lambda x: x in ['low', 'medium', 'high', 'auto'])
 
 
 @api_v2_bp.route('/process-script', methods=['POST'])
@@ -114,8 +127,8 @@ def process_script_webhook():
 
 @api_v2_bp.route('/generate-voiceover', methods=['POST'])
 @limiter.limit("20 per minute")
-def generate_voiceover_webhook():
-    """Generate voiceover for a segment using webhook architecture."""
+def generate_voiceover_direct():
+    """Generate voiceover for a segment using direct synchronous processing."""
     try:
         # Validate input
         schema = GenerateVoiceoverWebhookSchema()
@@ -159,47 +172,40 @@ def generate_voiceover_webhook():
             'Status': 'Generating Voiceover'
         })
         
-        # Create job record
-        job = airtable.create_job(
-            job_type=config.JOB_TYPE_VOICEOVER,
-            segment_id=data['record_id'],
-            request_payload=data
-        )
-        job_id = job['id']
-        
-        # Generate webhook URL
-        webhook_url = f"{config.WEBHOOK_BASE_URL}/webhooks/elevenlabs?job_id={job_id}"
-        
-        # Initialize ElevenLabs service
+        # Initialize services
         elevenlabs = ElevenLabsService()
+        nca = NCAService()
         
-        # Generate voiceover
-        result = elevenlabs.generate_voice(
+        # Generate voiceover synchronously
+        result = elevenlabs.generate_voice_sync(
             text=segment_text,
             voice_id=voice_id,
             stability=stability,
-            similarity_boost=similarity_boost,
-            webhook_url=webhook_url
+            similarity_boost=similarity_boost
         )
         
-        # Update job with external ID if available
-        if 'job_id' in result:
-            airtable.update_job(job_id, {
-                'External Job ID': result['job_id'],
-                'Webhook URL': webhook_url,
-                'Status': config.STATUS_PROCESSING
-            })
+        # Upload audio to NCA for storage
+        upload_result = nca.upload_file(
+            file_data=result['audio_data'],
+            filename=f"voiceover_{data['record_id']}.mp3",
+            content_type='audio/mpeg'
+        )
+        
+        # Update segment with voiceover URL and success status
+        airtable.update_segment(data['record_id'], {
+            'Voiceover': [{'url': upload_result['url']}],
+            'Status': 'Voiceover Ready'
+        })
         
         return jsonify({
-            'job_id': job_id,
             'segment_id': data['record_id'],
             'voice_id': voice_id,
             'voice_name': voice['fields'].get('Name', 'Unknown'),
             'stability': stability,
             'similarity_boost': similarity_boost,
-            'status': 'processing',
-            'webhook_url': webhook_url
-        }), 202
+            'voiceover_url': upload_result['url'],
+            'status': 'completed'
+        }), 200
         
     except Exception as e:
         logger.error(f"Error generating voiceover: {e}")
@@ -212,8 +218,6 @@ def generate_voiceover_webhook():
         except:
             pass  # Don't fail if status update fails
         
-        if 'job_id' in locals():
-            airtable.fail_job(job_id, str(e))
         return jsonify({'error': 'Failed to generate voiceover', 'details': str(e)}), 500
 
 
@@ -493,12 +497,143 @@ def generate_and_add_music_webhook():
         return jsonify({'error': 'Failed to generate music', 'details': str(e)}), 500
 
 
+@api_v2_bp.route('/generate-ai-image', methods=['POST'])
+@limiter.limit("10 per minute")
+def generate_ai_image_webhook():
+    """Generate AI image from text prompt using OpenAI's gpt-image-1 model."""
+    try:
+        # Validate input
+        schema = GenerateAIImageWebhookSchema()
+        data = schema.load(request.json)
+    except ValidationError as err:
+        return jsonify({'error': 'Validation error', 'details': err.messages}), 400
+    
+    try:
+        # Get segment record from Airtable
+        segment = airtable.get_segment(data['segment_id'])
+        if not segment:
+            return jsonify({'error': 'Segment record not found'}), 404
+        
+        # Get AI image prompt from segment
+        ai_image_prompt = segment['fields'].get('AI Image Prompt')
+        if not ai_image_prompt:
+            return jsonify({'error': 'AI Image Prompt field is empty'}), 400
+        
+        # Update segment status to 'Generating Image'
+        airtable.update_segment(data['segment_id'], {
+            'Status': 'Generating Image'
+        })
+        
+        # Create job record
+        job = airtable.create_job(
+            job_type=config.JOB_TYPE_AI_IMAGE,
+            segment_id=data['segment_id'],
+            request_payload=data
+        )
+        job_id = job['id']
+        
+        # Prepare OpenAI API request
+        openai_headers = {
+            'Authorization': f'Bearer {config.OPENAI_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        # Map size parameter to OpenAI format
+        size_mapping = {
+            '1024x1024': '1024x1024',
+            '1024x1536': '1024x1792',  # OpenAI uses 1792 instead of 1536
+            '1536x1024': '1792x1024',  # OpenAI uses 1792 instead of 1536
+            'auto': '1024x1792'  # Default to portrait
+        }
+        
+        openai_payload = {
+            'model': 'dall-e-3',  # Using DALL-E 3 as gpt-image-1 might not be the exact model name
+            'prompt': ai_image_prompt,
+            'size': size_mapping.get(data['size'], '1024x1792'),
+            'quality': 'hd' if data['quality'] in ['high', 'auto'] else 'standard',
+            'n': 1,
+            'response_format': 'b64_json'
+        }
+        
+        # Call OpenAI API
+        response = requests.post(
+            f"{config.OPENAI_BASE_URL}/images/generations",
+            headers=openai_headers,
+            json=openai_payload,
+            timeout=120  # 2 minutes timeout for image generation
+        )
+        
+        if response.status_code != 200:
+            error_detail = response.json() if response.headers.get('content-type') == 'application/json' else response.text
+            raise Exception(f"OpenAI API error: {response.status_code} - {error_detail}")
+        
+        # Extract base64 encoded image
+        result = response.json()
+        base64_image = result['data'][0]['b64_json']
+        
+        # Decode base64 to binary
+        image_data = base64.b64decode(base64_image)
+        
+        # Get the attachment field ID for the 'Image' field
+        # We need to find the field ID for the Image attachment field
+        # First, let's upload to S3 using NCA service for storage
+        nca = NCAService()
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        upload_result = nca.upload_file(
+            file_data=image_data,
+            filename=f"ai_generated_{data['segment_id']}_{timestamp}.png",
+            content_type='image/png'
+        )
+        
+        # Update segment with image URL
+        airtable.update_segment(data['segment_id'], {
+            'Image': [{'url': upload_result['url']}],
+            'Status': 'Image Ready'
+        })
+        
+        # Update job status
+        airtable.update_job(job_id, {
+            'Status': config.STATUS_COMPLETED,
+            'Response Payload': json.dumps({
+                'image_url': upload_result['url'],
+                'prompt': ai_image_prompt,
+                'size': data['size'],
+                'quality': data['quality']
+            })
+        })
+        
+        return jsonify({
+            'job_id': job_id,
+            'segment_id': data['segment_id'],
+            'image_url': upload_result['url'],
+            'prompt': ai_image_prompt,
+            'size': data['size'],
+            'quality': data['quality'],
+            'status': 'completed'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error generating AI image: {e}")
+        
+        # Update segment status to 'Image Generation Failed'
+        try:
+            airtable.update_segment(data['segment_id'], {
+                'Status': 'Image Generation Failed'
+            })
+        except:
+            pass  # Don't fail if status update fails
+        
+        if 'job_id' in locals():
+            airtable.fail_job(job_id, str(e))
+        return jsonify({'error': 'Failed to generate AI image', 'details': str(e)}), 500
+
+
 @api_v2_bp.route('/status', methods=['GET'])
 def status_v2():
     """Simple status endpoint for v2 API."""
     return jsonify({
         'status': 'ok',
         'version': 'v2',
-        'architecture': 'webhook-based',
-        'message': 'YouTube Video Engine API v2 is running'
+        'architecture': 'hybrid - direct ElevenLabs processing with webhook support for other services',
+        'message': 'YouTube Video Engine API v2 is running with fixed ElevenLabs integration'
     })
