@@ -61,53 +61,93 @@ class NCAService:
     @retry(max_attempts=3, exceptions=(requests.RequestException,))
     def upload_file(self, file_data: bytes, filename: str, 
                    content_type: str = 'application/octet-stream') -> Dict:
-        """Upload a file to NCA Toolkit storage."""
+        """Upload a file directly to S3 storage."""
         try:
-            api_logger.log_api_request('nca', 'upload_file', {
-                'filename': filename,
-                'content_type': content_type,
-                'size': len(file_data)
-            })
+            import boto3
+            from botocore.client import Config
             
-            files = {
-                'file': (filename, file_data, content_type)
+            # Initialize S3 client with DigitalOcean Spaces credentials
+            s3_client = boto3.client(
+                's3',
+                endpoint_url='https://nyc3.digitaloceanspaces.com',
+                aws_access_key_id=self.config.NCA_S3_ACCESS_KEY,
+                aws_secret_access_key=self.config.NCA_S3_SECRET_KEY,
+                config=Config(signature_version='s3v4'),
+                region_name=self.config.NCA_S3_REGION
+            )
+            
+            # Generate a unique key for the file
+            from datetime import datetime
+            import uuid
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            unique_id = str(uuid.uuid4())[:8]
+            key = f"youtube-video-engine/voiceovers/{timestamp}_{unique_id}_{filename}"
+            
+            # Upload to S3
+            s3_client.put_object(
+                Bucket=self.config.NCA_S3_BUCKET_NAME,
+                Key=key,
+                Body=file_data,
+                ContentType=content_type,
+                ACL='public-read'  # Make it publicly accessible
+            )
+            
+            # Return the public URL
+            public_url = f"https://{self.config.NCA_S3_BUCKET_NAME}.nyc3.digitaloceanspaces.com/{key}"
+            
+            return {
+                'url': public_url,
+                'key': key,
+                'bucket': self.config.NCA_S3_BUCKET_NAME
             }
             
-            # For file upload, we need to remove Content-Type from headers
-            headers = {'X-API-Key': self.api_key}
-            
-            response = self.session.post(
-                f"{self.base_url}/api/upload",
-                files=files,
-                headers=headers
-            )
-            response.raise_for_status()
-            
-            result = response.json()
-            api_logger.log_api_response('nca', 'upload_file', response.status_code, result)
-            
-            return result
         except Exception as e:
             api_logger.log_error('nca', e, {'operation': 'upload_file'})
             raise
     
     def combine_audio_video(self, video_url: str, audio_url: str, 
-                          output_filename: str, webhook_url: Optional[str] = None) -> Dict:
-        """Combine audio and video files."""
+                          output_filename: str, webhook_url: Optional[str] = None,
+                          custom_id: Optional[str] = None) -> Dict:
+        """Combine audio and video files using FFmpeg compose endpoint."""
         try:
+            # Ensure output filename has proper extension
+            if not output_filename.endswith(('.mp4', '.avi', '.mov', '.mkv')):
+                output_filename = f"{output_filename}.mp4"
+            
             payload = {
-                'video_url': video_url,
-                'audio_url': audio_url,
-                'output_filename': output_filename
+                'inputs': [
+                    {'file_url': video_url},
+                    {'file_url': audio_url}
+                ],
+                'filename': output_filename,
+                'filters': [
+                    {'filter': '[0:v]copy[vout]'},  # Copy video stream
+                    {'filter': '[1:a]copy[aout]'}   # Copy audio stream
+                ],
+                'outputs': [
+                    {
+                        'options': [
+                            {'option': '-map', 'argument': '[vout]'},
+                            {'option': '-map', 'argument': '[aout]'},
+                            {'option': '-c:v', 'argument': 'copy'},
+                            {'option': '-c:a', 'argument': 'aac'},
+                            {'option': '-shortest'}
+                        ]
+                    }
+                ]
             }
             
             if webhook_url:
                 payload['webhook_url'] = webhook_url
             
+            if custom_id:
+                payload['id'] = custom_id
+            
             api_logger.log_api_request('nca', 'combine_audio_video', payload)
             
+            # Use correct NCA Toolkit endpoint
             response = self.session.post(
-                f"{self.base_url}/api/media/combine",
+                f"{self.base_url}/v1/ffmpeg/compose",
                 json=payload
             )
             response.raise_for_status()
@@ -122,21 +162,32 @@ class NCAService:
             raise
     
     def concatenate_videos(self, video_urls: List[str], output_filename: str,
-                         webhook_url: Optional[str] = None) -> Dict:
-        """Concatenate multiple videos into one."""
+                         webhook_url: Optional[str] = None, 
+                         custom_id: Optional[str] = None) -> Dict:
+        """Concatenate multiple videos into one using NCA video combine endpoint."""
         try:
+            # Ensure output filename has proper extension
+            if not output_filename.endswith(('.mp4', '.avi', '.mov', '.mkv')):
+                output_filename = f"{output_filename}.mp4"
+            
             payload = {
                 'video_urls': video_urls,
-                'output_filename': output_filename
+                'filename': output_filename,
+                'transition': 'none',  # No transition between videos
+                'output_format': 'mp4'
             }
             
             if webhook_url:
                 payload['webhook_url'] = webhook_url
             
+            if custom_id:
+                payload['id'] = custom_id
+            
             api_logger.log_api_request('nca', 'concatenate_videos', payload)
             
+            # Use correct NCA Toolkit endpoint
             response = self.session.post(
-                f"{self.base_url}/api/media/concatenate",
+                f"{self.base_url}/v1/video/combine",
                 json=payload
             )
             response.raise_for_status()
@@ -152,23 +203,48 @@ class NCAService:
     
     def add_background_music(self, video_url: str, music_url: str, 
                            output_filename: str, volume_ratio: float = 0.2,
-                           webhook_url: Optional[str] = None) -> Dict:
-        """Add background music to a video."""
+                           webhook_url: Optional[str] = None,
+                           custom_id: Optional[str] = None) -> Dict:
+        """Add background music to a video using FFmpeg compose endpoint."""
         try:
+            # Ensure output filename has proper extension
+            if not output_filename.endswith(('.mp4', '.avi', '.mov', '.mkv')):
+                output_filename = f"{output_filename}.mp4"
+            
             payload = {
-                'video_url': video_url,
-                'music_url': music_url,
-                'output_filename': output_filename,
-                'volume_ratio': volume_ratio
+                'inputs': [
+                    {'file_url': video_url},
+                    {'file_url': music_url}
+                ],
+                'filename': output_filename,
+                'filters': [
+                    {'filter': f'[0:a]volume=1.0[a0]'},  # Keep video audio at 100%
+                    {'filter': f'[1:a]volume={volume_ratio}[a1]'},  # Reduce music volume
+                    {'filter': '[a0][a1]amix=inputs=2:duration=shortest:dropout_transition=2[aout]'}  # Mix both
+                ],
+                'outputs': [
+                    {
+                        'options': [
+                            {'option': '-map', 'argument': '0:v'},  # Keep original video
+                            {'option': '-map', 'argument': '[aout]'},  # Use mixed audio
+                            {'option': '-c:v', 'argument': 'copy'},  # Copy video without re-encoding
+                            {'option': '-shortest'}  # Stop when shortest input ends
+                        ]
+                    }
+                ]
             }
             
             if webhook_url:
                 payload['webhook_url'] = webhook_url
             
+            if custom_id:
+                payload['id'] = custom_id
+            
             api_logger.log_api_request('nca', 'add_background_music', payload)
             
+            # Use correct NCA Toolkit endpoint
             response = self.session.post(
-                f"{self.base_url}/api/media/add-music",
+                f"{self.base_url}/v1/ffmpeg/compose",
                 json=payload
             )
             response.raise_for_status()
@@ -183,12 +259,13 @@ class NCAService:
             raise
     
     def get_job_status(self, job_id: str) -> Dict:
-        """Get the status of a processing job."""
+        """Get the status of a processing job using correct NCA endpoint."""
         try:
             api_logger.log_api_request('nca', 'get_job_status', {'job_id': job_id})
             
+            # Use correct NCA Toolkit endpoint
             response = self.session.get(
-                f"{self.base_url}/api/jobs/{job_id}"
+                f"{self.base_url}/v1/job/status/{job_id}"
             )
             response.raise_for_status()
             

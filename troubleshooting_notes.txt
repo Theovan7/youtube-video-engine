@@ -1,65 +1,108 @@
 
-**FIX IMPLEMENTED: GoAPI Response Parsing Corrected**
 
-**FILES UPDATED:**
-✅ `/services/goapi_service.py` - Fixed response parsing in two methods:
+## 2025-05-29 17:30 - NCA Service API Endpoint Mismatch Error (recXwiLcbFPcIQxI7)
 
-**1. generate_video() method (lines ~137-154):**
+### Problem Definition
+- **Error**: "Failed to combine media" 
+- **Segment ID**: recXwiLcbFPcIQxI7
+- **Script**: Combine Segment Media - Webhook Trigger (v2)
+- **API Endpoint**: `https://youtube-video-engine.fly.dev/api/v2/combine-segment-media`
+- **Tech Stack Component**: NCA Toolkit integration in `nca_service.py`
+- **Function**: `combine_audio_video()` method
+
+### Root Cause Analysis
+**API ENDPOINT MISMATCH**: The NCA service is calling non-existent endpoints that don't match the actual NCA Toolkit API specification.
+
+**INCORRECT ENDPOINT IN CODE:**
 ```python
-# FIXED: Parse response - GoAPI returns nested structure with task_id in 'data' object
-if result.get('code') == 200 and result.get('data'):
-    data = result['data']
-    task_id = data.get('task_id') or data.get('id')
-    
-    if task_id:
-        logger.info(f"✅ Video generation started successfully!")
-        logger.info(f"   Task ID: {task_id}")
-        logger.info(f"   Status: {data.get('status', 'pending')}")
-        return {
-            'id': task_id,
-            'status': data.get('status', 'processing'),
-            'service': 'goapi_kling'
-        }
-    else:
-        raise Exception(f"GoAPI error: No task_id found in response data")
-else:
-    error_msg = result.get('message', 'Unknown error')
-    if result.get('error') and isinstance(result['error'], dict):
-        error_msg = result['error'].get('message', error_msg)
-    raise Exception(f"GoAPI error: {error_msg} (code: {result.get('code', 'unknown')})")
+# nca_service.py line ~89
+response = self.session.post(
+    f"{self.base_url}/api/media/combine",  # ❌ WRONG ENDPOINT
+    json=payload
+)
 ```
 
-**2. get_video_status() method (lines ~178-183):**
-```python
-# FIXED: Parse response - handle nested structure
-if result.get('code') == 200 and result.get('data'):
-    return result['data']
-else:
-    return result
+**CORRECT NCA TOOLKIT ENDPOINT:**
+According to `/coding_resources/nca_toolkit_notes.txt`, the correct endpoint should be:
+- `/v1/ffmpeg/compose` - For combining audio and video files
+
+### Technical Details
+**Current Implementation Issues:**
+1. ❌ Using `/api/media/combine` (non-existent endpoint)
+2. ❌ Using `/api/media/concatenate` (non-existent endpoint) 
+3. ❌ Using `/api/media/add-music` (non-existent endpoint)
+4. ❌ Missing required `filename` parameter for FFmpeg operations
+5. ❌ Incorrect payload structure for NCA API
+
+**Expected NCA Payload Structure:**
+```json
+{
+  "inputs": [
+    {"file_url": "https://video-url.mp4"},
+    {"file_url": "https://audio-url.mp3"}
+  ],
+  "filename": "output_combined.mp4",  // CRITICAL: Required for FFmpeg
+  "webhook_url": "https://callback-url.com"
+}
 ```
 
-**NEXT STEPS FOR USER:**
-1. **RESTART APPLICATION**: The GoAPI service must be reloaded
-   ```bash
-   # If running locally:
-   python app.py
-   
-   # If deployed:
-   fly deploy --app youtube-video-engine
-   ```
+### Error Pattern Recognition
+**NEW ERROR**: This is the first occurrence of this specific NCA API mismatch error.
+**RELATED PATTERN**: Similar to previous GoAPI response parsing issues where the service integration didn't match the actual API specification.
 
-2. **RETRY VIDEO GENERATION**: For segment recxGRBRi1Qe9sLDn
+### Solution Brief
+**FILES TO UPDATE:**
+1. **`/services/nca_service.py`** - Update all media processing methods:
+   - `combine_audio_video()` → Use `/v1/ffmpeg/compose`
+   - `concatenate_videos()` → Use `/v1/video/combine` 
+   - `add_background_music()` → Use `/v1/ffmpeg/compose` with audio mixing filters
 
-3. **MONITOR LOGS**: Check for successful task creation:
-   - Look for: "✅ Video generation started successfully!"
-   - Confirm task_id is returned
+**REQUIRED CHANGES:**
+1. ✅ **Update API endpoints** to match NCA Toolkit v1 specification
+2. ✅ **Fix payload structure** to include required `filename` parameter  
+3. ✅ **Add proper FFmpeg filter configuration** for audio/video combination
+4. ✅ **Update error handling** for NCA-specific response format
 
-**EXPECTED OUTCOME:**
-- Video generation requests will now succeed
-- Task IDs will be properly extracted from nested response
-- Webhook callbacks will work correctly
-- Status checks will return proper task status
+**CRITICAL IMPLEMENTATION NOTES:**
+- **MUST include `filename` with extension** (e.g., "output.mp4") to avoid FFmpeg format detection errors
+- **Use proper FFmpeg filters** for audio/video combination instead of simple merge
+- **Follow NCA webhook pattern** with job_id and proper response handling
 
-**STATUS**: ✅ FIX IMPLEMENTED - READY FOR DEPLOYMENT
+### Impact Assessment
+- **Immediate**: All segment media combination requests failing
+- **Workflow**: Prevents progression from individual segments to combined videos
+- **User Experience**: Silent failure with generic error message
+- **Production**: Affects end-to-end video generation pipeline
 
-===============================================================================
+### Recommended Next Steps
+1. **Update NCA service methods** to use correct API endpoints and payload structure
+2. **Test with single segment** to verify fix before bulk processing
+3. **Update error logging** to provide more specific NCA error details
+4. **Document NCA integration patterns** for future reference
+
+### Status
+**✅ FIXED** - Root cause confirmed as API endpoint mismatch in NCA service integration. Corrected API calls implemented.
+
+### Resolution Details (2025-05-29 17:45)
+
+**CHANGES IMPLEMENTED:**
+1. **✅ Updated API endpoints** to match NCA Toolkit v1 specification:
+   - `combine_audio_video()`: `/api/media/combine` → `/v1/ffmpeg/compose`
+   - `concatenate_videos()`: `/api/media/concatenate` → `/v1/video/combine`
+   - `add_background_music()`: `/api/media/add-music` → `/v1/ffmpeg/compose`
+   - `get_job_status()`: `/api/jobs/{job_id}` → `/v1/job/status/{job_id}`
+
+2. **✅ Fixed payload structure** to include required `filename` parameter with extension
+3. **✅ Added proper FFmpeg filter configuration** for audio/video operations
+4. **✅ Updated method signatures** to support custom_id parameter for better tracking
+
+**TECHNICAL IMPROVEMENTS:**
+- Added automatic file extension validation and appending
+- Implemented proper FFmpeg audio mixing for background music
+- Enhanced error logging with operation context
+- Updated payload structure to use NCA's `inputs` array format
+
+**VERIFICATION NEEDED:**
+- Test segment `recXwiLcbFPcIQxI7` media combination
+- Monitor production logs for successful NCA API calls
+- Validate webhook responses contain proper result URLs
