@@ -899,9 +899,9 @@ def generate_video_webhook():
         if video_style == 'Zoom':
             # --- Parameters for smooth zoom, based on new documentation ---
             OUTPUT_W, OUTPUT_H = 1920, 1080
-            FPS = 25  # Using FPS from the new documentation's example for consistency
-            MAX_ZOOM = 1.2  # Target 20% zoom (e.g., 1.0x to 1.2x)
-            INITIAL_SCALE_FACTOR = 2 # Pre-scale image for smoother zoom (e.g., 2x output width)
+            FPS = 60  # Increased from 25 to 60 for ultra-smooth zoom animation
+            MAX_ZOOM = 1.15  # Reduced from 1.2 to 1.15 for more gradual zoom effect
+            INITIAL_SCALE_FACTOR = 3 # Increased from 2 to 3 for better quality during zoom
 
             actual_segment_duration = segment['fields'].get('Duration')
             if not actual_segment_duration or actual_segment_duration <= 0:
