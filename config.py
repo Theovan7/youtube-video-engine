@@ -21,7 +21,8 @@ class Config:
         'AIRTABLE_BASE_ID',
         'NCA_API_KEY',
         'ELEVENLABS_API_KEY',
-        'GOAPI_API_KEY'
+        'GOAPI_API_KEY',
+        'OPENAI_API_KEY'
     ]
     
     def __init__(self):
@@ -62,7 +63,11 @@ class Config:
     
     # GoAPI Configuration
     GOAPI_API_KEY = os.getenv('GOAPI_API_KEY')
-    GOAPI_BASE_URL = os.getenv('GOAPI_BASE_URL', 'https://apibox.erweima.ai')
+    GOAPI_BASE_URL = os.getenv('GOAPI_BASE_URL', 'https://api.goapi.ai')
+    
+    # OpenAI Configuration
+    OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+    OPENAI_BASE_URL = 'https://api.openai.com/v1'
     
     # Application Configuration
     WEBHOOK_BASE_URL = os.getenv('WEBHOOK_BASE_URL', 'http://localhost:5000')
@@ -89,6 +94,8 @@ class Config:
     JOB_TYPE_CONCATENATE = 'concatenate'
     JOB_TYPE_MUSIC = 'music'
     JOB_TYPE_FINAL = 'final'
+    JOB_TYPE_AI_IMAGE = 'ai_image'
+    JOB_TYPE_VIDEO = 'video_generation'
     
     # Status Values
     STATUS_PENDING = 'pending'
@@ -182,6 +189,7 @@ class TestingConfig(Config):
     NCA_API_KEY = 'test-nca-key'
     ELEVENLABS_API_KEY = 'test-elevenlabs-key'
     GOAPI_API_KEY = 'test-goapi-key'
+    OPENAI_API_KEY = 'test-openai-key'
     
     # Skip validation for testing
     def validate_environment(self):
@@ -193,8 +201,8 @@ class ProductionConfig(Config):
     DEBUG = False
     TESTING = False
     
-    # Production-specific settings
-    LOG_LEVEL = 'WARNING'
+    # Production-specific settings - Use INFO for better debugging
+    LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
     
     # Override webhook URL for production
     WEBHOOK_BASE_URL = os.getenv('WEBHOOK_BASE_URL', 'https://youtube-video-engine.fly.dev')

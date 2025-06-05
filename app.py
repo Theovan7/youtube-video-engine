@@ -11,7 +11,7 @@ from config import get_config, Config
 from api.routes import api_bp
 from api.routes_v2 import api_v2_bp
 from api.webhooks import webhooks_bp
-from utils.logger import setup_logging
+from utils.logger import setup_logging, APILogger
 from flask_swagger_ui import get_swaggerui_blueprint
 from utils.metrics import MetricsCollector
 from datetime import datetime
@@ -20,6 +20,7 @@ import time
 # Setup logging
 setup_logging()
 logger = logging.getLogger(__name__)
+api_logger = APILogger()  # Instantiate APILogger for use in this module
 
 # Global metrics collector
 metrics_collector = MetricsCollector()
@@ -103,7 +104,36 @@ def create_app(config_name=None):
         """Prometheus-style metrics endpoint."""
         return jsonify(metrics_collector.get_metrics_summary())
     
-    # Health check endpoint
+    # Test logging endpoint
+    @app.route('/test-logging')
+    @limiter.exempt
+    def test_logging():
+        """Test logging functionality for debugging."""
+        logger.info("🟢 INFO level log test - this should appear in Fly.io logs")
+        logger.warning("🟡 WARNING level log test - this should appear in Fly.io logs")
+        logger.error("🔴 ERROR level log test - this should appear in Fly.io logs")
+        
+        # Also test the APILogger
+        api_logger.log_api_request('test', 'test-logging', {'message': 'Testing API logging'})
+        
+        return jsonify({
+            'status': 'logging_test_completed',
+            'message': 'Check Fly.io logs for test messages',
+            'timestamp': datetime.utcnow().isoformat() + 'Z'
+        }), 200
+    
+    # Basic health check endpoint (for Fly.io)
+    @app.route('/health/basic')
+    @limiter.exempt
+    def basic_health_check():
+        """Fast basic health check endpoint for Fly.io monitoring."""
+        return jsonify({
+            'status': 'healthy',
+            'version': '1.0.0',
+            'timestamp': datetime.utcnow().isoformat() + 'Z'
+        }), 200
+    
+    # Comprehensive health check endpoint
     @app.route('/health')
     @limiter.exempt
     def health_check():
@@ -111,7 +141,7 @@ def create_app(config_name=None):
         health_status = {
             'status': 'healthy',
             'version': '1.0.0',
-            'timestamp': os.popen('date').read().strip(),
+            'timestamp': datetime.utcnow().isoformat() + 'Z',
             'services': {}
         }
         

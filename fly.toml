@@ -18,10 +18,11 @@ kill_timeout = "5s"
   PORT = "8080"
   FLASK_ENV = "production"
   LOG_LEVEL = "INFO"
+  GUNICORN_LOG_LEVEL = "info"
   WEBHOOK_BASE_URL = "https://youtube-video-engine.fly.dev"
 
 [processes]
-  app = "gunicorn --bind 0.0.0.0:8080 --workers 4 --timeout 120 app:app"
+  app = "gunicorn --config gunicorn.conf.py app:app"
 
 [[services]]
   protocol = "tcp"
@@ -39,21 +40,21 @@ kill_timeout = "5s"
 
   [services.concurrency]
     type = "connections"
-    hard_limit = 25
-    soft_limit = 20
+    hard_limit = 50
+    soft_limit = 40
 
   [[services.tcp_checks]]
-    interval = "15s"
-    timeout = "2s"
-    grace_period = "5s"
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "10s"
     restart_limit = 0
 
   [[services.http_checks]]
-    interval = "10s"
-    timeout = "2s"
-    grace_period = "5s"
+    interval = "30s"
+    timeout = "10s"
+    grace_period = "10s"
     method = "get"
-    path = "/health"
+    path = "/health/basic"
     protocol = "http"
     restart_limit = 0
     tls_skip_verify = false
@@ -61,4 +62,4 @@ kill_timeout = "5s"
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
-  memory_mb = 512
+  memory_mb = 1024

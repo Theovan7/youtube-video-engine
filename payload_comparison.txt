@@ -1,0 +1,62 @@
+"""
+PAYLOAD STRUCTURE COMPARISON - ROOT CAUSE FOUND
+==============================================
+
+WORKING N8N PAYLOAD STRUCTURE:
+{
+    "model": "kling",
+    "task_type": "video_generation",
+    "input": {                           ← KEY DIFFERENCE: 'input' wrapper
+        "prompt": "animate the video",
+        "cfg_scale": 0.5,
+        "duration": 10,
+        "aspect_ratio": "1:1",
+        "version": "1.6",                ← Inside 'input'
+        "mode": "std",                   ← Inside 'input'
+        "image_url": "...",
+        "effect": "expansion",           ← Inside 'input'
+        "camera_control": {
+            "type": "simple",
+            "config": {                  ← KEY DIFFERENCE: 'config' wrapper
+                "horizontal": 0,
+                "vertical": 2,
+                "pan": -10,
+                "tilt": 0,
+                "roll": 0,
+                "zoom": 0
+            }
+        }
+    },
+    "config": {                          ← KEY DIFFERENCE: 'config' section
+        "webhook_config": {
+            "endpoint": "webhook_url"
+        },
+        "service_mode": "public"
+    }
+}
+
+OUR BROKEN PAYLOAD STRUCTURE:
+{
+    "model": "kling",
+    "task_type": "video_generation",
+    "version": "1.6",                    ← WRONG: Should be in 'input'
+    "mode": "std",                       ← WRONG: Should be in 'input'  
+    "effect": "expansion",               ← WRONG: Should be in 'input'
+    "aspect_ratio": "16:9",              ← WRONG: Should be in 'input'
+    "cfg_scale": 0.5,                    ← WRONG: Should be in 'input'
+    "prompt": "animate the video",       ← WRONG: Should be in 'input'
+    "duration": 5,                       ← WRONG: Should be in 'input'
+    "image_url": "...",                  ← WRONG: Should be in 'input'
+    "camera_control": {                  ← WRONG: Should be in 'input'
+        "type": "simple",
+        "horizontal": 0,                 ← WRONG: Should be in 'config'
+        "vertical": 2,                   ← WRONG: Should be in 'config'
+        "pan": -10,                      ← WRONG: Should be in 'config'
+        "tilt": 0,                       ← WRONG: Should be in 'config'
+        "roll": 0,                       ← WRONG: Should be in 'config'
+        "zoom": 0                        ← WRONG: Should be in 'config'
+    }
+}
+
+IMPACT: Wrong payload structure likely caused 400/500 validation errors!
+"""

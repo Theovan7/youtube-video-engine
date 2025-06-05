@@ -1,0 +1,158 @@
+"""Fixed GoAPI service using PiAPI for Kling video generation."""
+
+import logging
+import requests
+import time
+import json
+from typing import Dict, Optional
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
+from config import get_config
+from utils.logger import APILogger
+
+logger = logging.getLogger(__name__)
+api_logger = APILogger()
+
+
+class PiAPIService:
+    """Service for Kling video generation using PiAPI."""
+    
+    def __init__(self):
+        """Initialize PiAPI service for Kling video generation."""
+        self.config = get_config()()
+        # You'll need to add PIAPI_API_KEY to your .env file
+        self.api_key = getattr(self.config, 'PIAPI_API_KEY', None)
+        self.base_url = "https://api.piapi.ai"
+        
+        if not self.api_key:
+            raise ValueError("PIAPI_API_KEY not found in configuration")
+        
+        logger.info(f"🔧 Initializing PiAPI service:")
+        logger.info(f"   Base URL: {self.base_url}")
+        logger.info(f"   API Key: {self.api_key[:10]}...{self.api_key[-4:] if len(self.api_key) > 14 else '[REDACTED]'}")
+        
+        # Create session with retry logic
+        self.session = requests.Session()
+        retry_strategy = Retry(
+            total=3,
+            status_forcelist=[429, 500, 502, 503, 504],
+            allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
+            backoff_factor=1
+        )
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
+        
+        # Set default headers
+        self.session.headers.update({
+            'X-API-Key': self.api_key,
+            'Content-Type': 'application/json'
+        })
+    
+    def generate_video(self, image_url: str, duration: int = 5, 
+                      aspect_ratio: str = '16:9', quality: str = 'standard',
+                      webhook_url: Optional[str] = None) -> Dict:
+        """Generate video from image using Kling model via PiAPI."""
+        
+        logger.info(f"🎬 Starting Kling video generation via PiAPI...")
+        
+        try:
+            # PiAPI Kling payload structure
+            payload = {
+                'input': {
+                    'prompt': 'animate the video with natural movement',
+                    'image_url': image_url,
+                    'duration': duration,
+                    'cfg_scale': 0.5,
+                    'mode': 'professional' if quality == 'high' else 'standard'
+                }
+            }
+            
+            if webhook_url:
+                payload['webhook_url'] = webhook_url
+            
+            logger.info(f"📦 Request payload: {json.dumps(payload, indent=2)}")
+            
+            # Make request to PiAPI Kling endpoint
+            response = self.session.post(
+                f"{self.base_url}/kling/videogen",
+                json=payload,
+                timeout=30
+            )
+            
+            logger.info(f"📥 Response: {response.status_code}")
+            logger.info(f"📄 Response body: {response.text}")
+            
+            response.raise_for_status()
+            result = response.json()
+            
+            if result.get('code') == 200:
+                logger.info(f"✅ Video generation started successfully!")
+                logger.info(f"   Task ID: {result.get('data', {}).get('task_id')}")
+                return {
+                    'id': result.get('data', {}).get('task_id'),
+                    'status': 'processing',
+                    'service': 'piapi_kling'
+                }
+            else:
+                raise Exception(f"PiAPI error: {result.get('message', 'Unknown error')}")
+                
+        except Exception as e:
+            logger.error(f"💥 PiAPI video generation failed: {e}")
+            raise
+    
+    def get_video_status(self, task_id: str) -> Dict:
+        """Get status of video generation task."""
+        
+        logger.info(f"📊 Checking video status for task: {task_id}")
+        
+        try:
+            payload = {'task_id': task_id}
+            
+            response = self.session.post(
+                f"{self.base_url}/kling/fetch",
+                json=payload,
+                timeout=10
+            )
+            
+            logger.info(f"📥 Status response: {response.status_code}")
+            logger.info(f"📄 Status body: {response.text}")
+            
+            response.raise_for_status()
+            result = response.json()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"💥 Status check failed: {e}")
+            raise
+
+
+# Update your existing GoAPIService class to use PiAPI
+class GoAPIService:
+    """Updated service using PiAPI for Kling video generation."""
+    
+    def __init__(self):
+        """Initialize with PiAPI for video generation."""
+        self.piapi = PiAPIService()
+        logger.info("🔄 GoAPIService now using PiAPI for Kling video generation")
+    
+    def generate_video(self, image_url: str, duration: int = 5, 
+                      aspect_ratio: str = '16:9', quality: str = 'standard',
+                      webhook_url: Optional[str] = None) -> Dict:
+        """Generate video using PiAPI Kling service."""
+        return self.piapi.generate_video(image_url, duration, aspect_ratio, quality, webhook_url)
+    
+    def get_video_status(self, task_id: str) -> Dict:
+        """Get video status using PiAPI."""
+        return self.piapi.get_video_status(task_id)
+    
+    def check_health(self) -> bool:
+        """Health check - simplified for PiAPI."""
+        try:
+            # Simple connectivity test
+            response = requests.get("https://api.piapi.ai", timeout=10)
+            return response.status_code == 200
+        except:
+            return False

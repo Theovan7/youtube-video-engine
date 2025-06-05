@@ -10,6 +10,7 @@ The YouTube Video Engine is a Flask-based API service that automates the entire 
 
 - **Script Processing**: Parse scripts into timed segments
 - **AI Voiceover Generation**: Generate professional voiceovers using ElevenLabs
+- **AI Image Generation**: Generate images from text prompts using OpenAI's DALL-E 3
 - **Video Assembly**: Combine voiceovers with background videos
 - **Music Integration**: Add AI-generated background music
 - **Complete Automation**: End-to-end video production pipeline
@@ -22,6 +23,7 @@ The YouTube Video Engine is a Flask-based API service that automates the entire 
 - **Database**: Airtable (no SQL database needed)
 - **Media Processing**: NCA Toolkit (FREE)
 - **Voice Generation**: ElevenLabs API
+- **Image Generation**: OpenAI DALL-E 3 API
 - **Music Generation**: GoAPI (Suno)
 - **File Storage**: Digital Ocean Spaces (via NCA)
 - **Deployment**: Fly.io with Docker
@@ -56,6 +58,7 @@ cp .env.example .env
 - `NCA_API_KEY`
 - `ELEVENLABS_API_KEY`
 - `GOAPI_API_KEY`
+- `OPENAI_API_KEY`
 - `WEBHOOK_BASE_URL`
 
 ## Usage
@@ -129,6 +132,35 @@ Content-Type: application/json
 }
 ```
 
+#### Generate AI Image (v2 API)
+```http
+POST /api/v2/generate-ai-image
+Content-Type: application/json
+
+{
+  "segment_id": "airtable_record_id",
+  "size": "1792x1008",  // optional: 1920x1080, 1792x1008, 1024x576, auto
+  // Note: quality parameter removed - gpt-image-1 produces high-fidelity output by default
+}
+```
+
+**Note**: This endpoint requires the segment to have an 'AI Image Prompt' field populated in Airtable. The generated image will be uploaded to the 'Image' attachment field. Generates 4 images in YouTube-friendly 16:9 aspect ratios using OpenAI's gpt-image-1 model.
+
+#### Generate Video (v2 API)
+```http
+POST /api/v2/generate-video
+Content-Type: application/json
+
+{
+  "segment_id": "airtable_record_id",
+  "duration_override": 5,    // optional: 5 or 10 seconds, auto-calculated if not provided
+  "aspect_ratio": "16:9",    // optional: "1:1", "16:9", "auto"
+  "quality": "standard"      // optional: "standard", "high"
+}
+```
+
+**Note**: This endpoint requires the segment to have an 'Upscale Image' field with an image. Uses Kling AI v1.6 via GoAPI to generate videos from images. Duration is automatically determined from the segment's 'Duration' field (<5 seconds = 5 second video, ≥5 seconds = 10 second video). The generated video will be uploaded to the 'Video' attachment field.
+
 #### Check Job Status
 ```http
 GET /api/v1/jobs/{job_id}
@@ -160,6 +192,7 @@ fly secrets set AIRTABLE_BASE_ID=your_base_id
 fly secrets set NCA_API_KEY=your_key
 fly secrets set ELEVENLABS_API_KEY=your_key
 fly secrets set GOAPI_API_KEY=your_key
+fly secrets set OPENAI_API_KEY=your_key
 ```
 
 4. Deploy:
@@ -187,9 +220,12 @@ fly deploy
 - Order (Number)
 - Start Time (Number)
 - End Time (Number)
-- Duration (Formula)
+- Duration (Formula) - Used for video generation duration logic
 - Voice ID (Single line)
-- Video (Attachment) - User uploads background videos here
+- AI Image Prompt (Long text) - Text prompt for AI image generation
+- Image (Attachment) - AI-generated images (4 images in 16:9 aspect ratio)
+- Upscale Image (Attachment) - Source image for video generation
+- Video (Attachment) - AI-generated videos OR user uploads background videos here
 - Voiceover (Attachment)
 - Combined (Attachment)
 - Status (Single select)

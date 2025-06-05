@@ -48,6 +48,8 @@ class GenerateVoiceoverSchema(Schema):
     voice_id = fields.String(required=True)
     stability = fields.Float(missing=0.5, validate=validate.Range(min=0, max=1))
     similarity_boost = fields.Float(missing=0.5, validate=validate.Range(min=0, max=1))
+    style_exaggeration = fields.Float(missing=0.0, validate=validate.Range(min=0, max=1))
+    use_speaker_boost = fields.Boolean(missing=True)  # Default to True if not provided
 
 
 class CombineSegmentMediaSchema(Schema):
@@ -177,6 +179,62 @@ def generate_voiceover():
         
         # Initialize ElevenLabs service
         elevenlabs = ElevenLabsService()
+
+        # Fetch speed from segment data, parse, and clamp
+        segment_fields = segment.get('fields', {})
+        speed_value = segment_fields.get('Speed (from Voices)', 1.0)
+
+        if isinstance(speed_value, list):
+            if len(speed_value) > 0:
+                try:
+                    speed = float(speed_value[0])
+                except (ValueError, TypeError):
+                    logger.warning(f"Invalid speed value in list '{speed_value[0]}' for segment {data['segment_id']}. Defaulting to 1.0.")
+                    speed = 1.0
+            else: # Empty list
+                logger.warning(f"Empty speed value list for segment {data['segment_id']}. Defaulting to 1.0.")
+                speed = 1.0
+        elif isinstance(speed_value, (float, int)):
+            speed = float(speed_value)
+        else: 
+            try:
+                speed = float(speed_value)
+            except (ValueError, TypeError):
+                logger.warning(f"Invalid speed value '{speed_value}' (type: {type(speed_value)}) for segment {data['segment_id']}. Defaulting to 1.0.")
+                speed = 1.0
+        
+        # Clamp speed to ElevenLabs valid range [0.7, 1.2]
+        if speed < 0.7:
+            logger.warning(f"Speed {speed} for segment {data['segment_id']} is below 0.7. Clamping to 0.7.")
+            speed = 0.7
+        elif speed > 1.2:
+            logger.warning(f"Speed {speed} for segment {data['segment_id']} is above 1.2. Clamping to 1.2.")
+            speed = 1.2
+
+        # Get style_exaggeration from request data, parse, and clamp
+        style_exaggeration_value = data.get('style_exaggeration', 0.0)
+        try:
+            style_exaggeration = float(style_exaggeration_value)
+        except (ValueError, TypeError):
+            logger.warning(f"Invalid style_exaggeration value '{style_exaggeration_value}' (type: {type(style_exaggeration_value)}) for job {job_id}. Defaulting to 0.0.")
+            style_exaggeration = 0.0
+
+        # Clamp style_exaggeration to [0.0, 1.0]
+        if style_exaggeration < 0.0:
+            logger.warning(f"Style Exaggeration {style_exaggeration} for job {job_id} is below 0.0. Clamping to 0.0.")
+            style_exaggeration = 0.0
+        elif style_exaggeration > 1.0:
+            logger.warning(f"Style Exaggeration {style_exaggeration} for job {job_id} is above 1.0. Clamping to 1.0.")
+            style_exaggeration = 1.0
+
+
+        # Get use_speaker_boost from request data
+        use_speaker_boost_value = data.get('use_speaker_boost', True)
+        if not isinstance(use_speaker_boost_value, bool):
+            logger.warning(f"Invalid 'use_speaker_boost' value '{use_speaker_boost_value}' (type: {type(use_speaker_boost_value)}) for job {job_id}. Defaulting to True.")
+            use_speaker_boost = True # Default to True if not a valid boolean
+        else:
+            use_speaker_boost = use_speaker_boost_value
         
         # Generate voiceover
         result = elevenlabs.generate_voice(
@@ -184,6 +242,9 @@ def generate_voiceover():
             voice_id=data['voice_id'],
             stability=data['stability'],
             similarity_boost=data['similarity_boost'],
+            speed=speed,
+            style_exaggeration=style_exaggeration,
+            use_speaker_boost=use_speaker_boost,
             webhook_url=webhook_url
         )
         
@@ -309,10 +370,10 @@ def combine_all_segments():
         video_urls = []
         
         for segment in segments:
-            if 'Combined' not in segment['fields'] or not segment['fields']['Combined']:
+            if 'Voiceover + Video' not in segment['fields'] or not segment['fields']['Voiceover + Video']:
                 uncombined.append(segment['id'])
             else:
-                video_urls.append(segment['fields']['Combined'][0]['url'])
+                video_urls.append(segment['fields']['Voiceover + Video'][0]['url'])
         
         if uncombined:
             return jsonify({
@@ -558,8 +619,8 @@ def get_video_segments(video_id):
             if 'Video' in fields and fields['Video']:
                 segment_data['base_video_url'] = fields['Video'][0]['url']
             
-            if 'Combined' in fields and fields['Combined']:
-                segment_data['combined_url'] = fields['Combined'][0]['url']
+            if 'Voiceover + Video' in fields and fields['Voiceover + Video']:
+                segment_data['combined_url'] = fields['Voiceover + Video'][0]['url']
             
             response['segments'].append(segment_data)
         

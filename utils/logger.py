@@ -30,8 +30,8 @@ def setup_logging():
     else:
         # JSON format for production
         formatter = jsonlogger.JsonFormatter(
-            '%(timestamp)s %(level)s %(name)s %(message)s',
-            rename_fields={'timestamp': '@timestamp', 'level': 'severity'}
+            fmt='%(asctime)s %(levelname)s %(name)s %(message)s',
+            rename_fields={'asctime': '@timestamp', 'levelname': 'severity'}
         )
     
     console_handler.setFormatter(formatter)

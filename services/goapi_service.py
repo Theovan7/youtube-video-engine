@@ -217,3 +217,83 @@ class GoAPIService:
             logger.error(f"💥 Status check failed: {e}")
             api_logger.log_error('goapi', e, {'operation': 'get_video_status'})
             raise
+
+    def generate_music(self, music_prompt: str, webhook_url: Optional[str] = None, 
+                       model: str = "Qubico/diffrhythm", task_type: str = "txt2audio-base", 
+                       lyrics: str = "NoLyrics", style_audio: str = "") -> Dict:
+        """Generate music using GoAPI txt2audio model."""
+        
+        logger.info(f"🎵 Starting music generation via GoAPI...")
+        logger.info(f"   Music Prompt: {music_prompt}")
+        logger.info(f"   Model: {model}")
+        logger.info(f"   Task Type: {task_type}")
+        
+        try:
+            payload = {
+                'model': model,
+                'task_type': task_type,
+                'input': {
+                    'lyrics': lyrics,
+                    'style_prompt': music_prompt,
+                    'style_audio': style_audio
+                },
+                'config': {
+                    'service_mode': 'public'  # Assuming public, adjust if needed
+                }
+            }
+            
+            if webhook_url:
+                payload['config']['webhook_config'] = {
+                    'endpoint': webhook_url,
+                    'secret': "" # Add secret from config if used
+                }
+                logger.info(f"🔗 Webhook URL for music: {webhook_url}")
+            
+            logger.info(f"📦 Music request payload: {json.dumps(payload, indent=2)}")
+            
+            url = f"{self.base_url}/api/v1/task"
+            logger.info(f"🚀 Sending music request to: {url}")
+            
+            api_logger.log_api_request('goapi', 'generate_music', payload)
+            
+            response = self.session.post(
+                url,
+                json=payload,
+                timeout=30 # Standard timeout
+            )
+            
+            logger.info(f"📥 Music response status: {response.status_code}")
+            logger.info(f"📄 Music response body: {response.text}")
+            
+            response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+            result = response.json()
+            
+            api_logger.log_api_response('goapi', 'generate_music', 
+                                      response.status_code, result)
+            
+            if result.get('code') == 200 and result.get('data'):
+                data = result['data']
+                task_id = data.get('task_id') or data.get('id')
+                
+                if task_id:
+                    logger.info(f"✅ Music generation started successfully!")
+                    logger.info(f"   Task ID: {task_id}")
+                    logger.info(f"   Status: {data.get('status', 'pending')}")
+                    return {
+                        'id': task_id,
+                        'status': data.get('status', 'processing'),
+                        'service': 'goapi_music'
+                    }
+                else:
+                    raise Exception(f"GoAPI music error: No task_id found in response data. Full response: {result}")
+            else:
+                error_msg = result.get('message', 'Unknown error')
+                if result.get('error') and isinstance(result['error'], dict):
+                    error_msg = result['error'].get('message', error_msg)
+                raise Exception(f"GoAPI music error: {error_msg} (code: {result.get('code', 'unknown')}). Full response: {result}")
+                
+        except Exception as e:
+            logger.error(f"💥 GoAPI music generation failed: {e}")
+            api_logger.log_error('goapi', e, {'operation': 'generate_music', 'prompt': music_prompt})
+            raise
+

@@ -1,0 +1,74 @@
+# Airtable PHI Video Production Setup
+Date: June 2, 2025
+
+## Base Information
+- Base ID: app1XR6KcYA8GleJd
+- Base Name: PHI Video Production
+
+## Table Structure
+### Videos Table
+- Primary fields: Record ID, Video ID, Description, Video Script
+- Video properties: Width (1280), Height (720), Active Video (boolean)
+- Segments relationship: Links to Segments table via "Segments" field
+- Processing flags: Segmentation Go, Combine Segments Go
+- Media assets: Voiceover + Video (from Segments)
+
+#### Video Attachment Fields (Confirmed June 2, 2025):
+✅ "AI Video" (attachment field)
+✅ "Video + B-Roll" (attachment field) 
+✅ "Video + Captions" (attachment field)
+✅ "Video + Music" (attachment field)
+✅ "Voiceover + Video (from Segments)" (attachment field) - contains individual segment videos
+✅ "Combined Segments Video" - **EXISTS but currently EMPTY** (confirmed via UI screenshot)
+
+### Segments Table  
+- Primary fields: Record ID, Segment ID, SRT Segment ID
+- Video relationship: Links to Videos table via "Videos" field (many-to-one)
+- Timing: Start Time, End Time, Timestamps (SRT format)
+- Content: SRT Text, AI Image Prompt
+- Media: Image, Video, Voiceover, Voiceover + Video
+- Processing flags: B-Roll, Voiceover Go, Combine VO + Vid
+- Voice settings: Links to Voices table
+- Image theming: Links to Image Themes table
+- Status tracking: Last Modified Time, Status
+
+## Verified Linkages (June 2, 2025)
+✅ Video `rectTH9JqTfgkvih4` (Video ID: 39, "Does life start at 50?")
+  ├── Segment `recXwiLcbFPcIQxI7` (Segment 1: "Does life really start in your 50's?")
+  ├── Segment `recxGRBRi1Qe9sLDn` (Segment 2: "Absolutely! And let me tell you why!")
+  └── Segment `recdRdKs6y9dyf609` (Segment 3: "It takes the first part of your life...")
+
+All segments properly reference the parent video in their "Videos" field.
+
+## Key Relationships
+- Videos → Segments (one-to-many)
+- Segments → Videos (many-to-one via "Videos" field)
+- Segments → Voices (for voiceover generation)
+- Segments → Image Themes (for visual styling)
+
+## Processing Workflow Status
+- Video segmentation: Complete (3 segments)
+- Voiceover generation: Complete for all segments
+- Video+Voiceover combination: Complete for all segments
+- Final video compilation: **READY** (field exists, awaiting data)
+
+## Code Integration Status (June 2, 2025)
+**FIELD VERIFICATION COMPLETE:**
+- Field name: "Combined Segments Video" ✅ **EXISTS**
+- Field status: **EMPTY** (no data yet)
+- Expected format: `{'Combined Segments Video': [{'url': output_url}]}`
+- Field type: **Attachment field** (based on similar video fields)
+- Code compatibility: ✅ **READY TO USE**
+
+## Processing Flags Status
+- Video record `rectTH9JqTfgkvih4` has:
+  - "Segmentation Go": true ✅
+  - "Combine Segments Go": true ✅ (checkmark visible in UI)
+
+## Notes
+- All segments have status "combined" indicating processing completion
+- Image theme used: "Dramatic Romantic Oil Painting" 
+- Voice used: "Gravitas - The deep narrator voice"
+- Video format: 1280x720 MP4
+- All segments include B-Roll images and final video outputs
+- Ready for combined video generation and upload

@@ -1,0 +1,9 @@
+# Add this to your .env file:
+
+# PiAPI Configuration for Kling Video Generation
+PIAPI_API_KEY=your_piapi_api_key_here
+PIAPI_BASE_URL=https://api.piapi.ai
+
+# Keep existing GoAPI config for future use (images/music)
+GOAPI_API_KEY=bfd917ef1b2a7e7360603c83ded9cf0b60e2df8802af0e1b495f31d63f59b462
+GOAPI_BASE_URL=https://goapi.ai

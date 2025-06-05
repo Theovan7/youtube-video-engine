@@ -1,108 +1,327 @@
 
 
-## 2025-05-29 17:30 - NCA Service API Endpoint Mismatch Error (recXwiLcbFPcIQxI7)
+### 📊 DETAILED INVESTIGATION RESULTS - 2025-05-30 14:45
 
-### Problem Definition
-- **Error**: "Failed to combine media" 
-- **Segment ID**: recXwiLcbFPcIQxI7
-- **Script**: Combine Segment Media - Webhook Trigger (v2)
-- **API Endpoint**: `https://youtube-video-engine.fly.dev/api/v2/combine-segment-media`
-- **Tech Stack Component**: NCA Toolkit integration in `nca_service.py`
-- **Function**: `combine_audio_video()` method
+**Airtable Data Analysis Completed** ✅
 
-### Root Cause Analysis
-**API ENDPOINT MISMATCH**: The NCA service is calling non-existent endpoints that don't match the actual NCA Toolkit API specification.
+#### 🎯 AFFECTED SEGMENT CONFIRMED
+**Segment ID**: `recXwiLcbFPcIQxI7`
+- **Content**: "Does life really start in your 50's?" (2.8 second duration)
+- **Status**: `"Combining Media"` (STUCK - should be "combined")
+- **Resources Available**: ✅ Video, ✅ Voiceover, ✅ Images (4 B-roll images)
+- **Last Modified**: 2025-05-29T14:16:08.000Z
+- **Issue**: Has all components but combination process failed
 
-**INCORRECT ENDPOINT IN CODE:**
+#### 📋 JOBS TABLE ANALYSIS
+**Multiple Failed Attempts Discovered**:
+
+1. **recEN6DmTmX5hT2gc** (2025-05-29T12:24:41.000Z)
+   - Type: `combine`
+   - Status: `failed` 
+   - Error: `400 Client Error: Bad Request for url: https://no-code-architect-app-gpxhq.ondigitalocean.app/v1/ffmpeg/compose`
+
+2. **recG9OScBwPfPYzDU** (2025-05-29T12:55:07.000Z)
+   - Type: `combine`
+   - Status: `failed`
+   - External Job ID: `025c2adc-710c-431e-9779-a055cc1bea43` ✅ **WEBHOOK RECEIVED**
+   - Error: `Unknown status: None`
+   - **Note**: This matches the "successful" job from troubleshooting notes that generated file but marked as failed
+
+3. **recGUQnf3CQPjPLbZ** (2025-05-28T09:36:01.000Z)
+   - Type: `combine`
+   - Status: `failed`
+   - Error: `404 Client Error: Not Found for url: https://no-code-architect-app-gpxhq.ondigitalocean.app/api/media/combine`
+
+#### ❌ MISSING JOB CONFIRMED
+**Job ID**: `recm8Ycr5coKYs62G`
+- ❌ **NOT FOUND** in YouTube Video Engine Jobs table
+- ❌ **NOT FOUND** in NCA system (404 from status endpoint)
+- ✅ **WAS ACCEPTED** by NCA API (202 ACCEPTED response)
+- 🚨 **PROOF**: Job accepted but never processed - classic async pipeline failure
+
+#### 🔍 PATTERN ANALYSIS
+**Three Distinct Failure Types Identified**:
+1. **API Endpoint Errors** (400 Bad Request, 404 Not Found)
+2. **NCA Job Processing Failure** (Job accepted but lost)
+3. **Webhook Processing Logic Issues** (Success marked as failure)
+
+#### 🚨 CRITICAL FINDINGS
+
+**1. NCA Pipeline Gap Confirmed**
+- NCA accepts jobs (202) but some never enter processing queue
+- No error returned to caller - appears successful
+- Results in permanently stuck segments
+
+**2. Webhook Logic Bug Confirmed** 
+- Job `025c2adc-710c-431e-9779-a055cc1bea43` successfully generated file:
+  `https://phi-bucket.nyc3.digitaloceanspaces.com/phi-bucket/025c2adc-710c-431e-9779-a055cc1bea43_output_0.mp4`
+- But marked as `failed` with "Unknown status: None" error
+- Webhook received but processing logic incorrectly handles success cases
+
+**3. Multiple API Integration Issues**
+- Wrong endpoint URLs being called (`/api/media/combine` vs `/v1/ffmpeg/compose`)  
+- Bad request errors suggest payload format issues
+- Inconsistent error handling across different failure types
+
+### 🎯 ROOT CAUSE SUMMARY
+
+**Primary Issue**: **NCA Toolkit Async Processing Pipeline Failure**
+- Jobs accepted but lost before processing
+- No feedback mechanism when jobs disappear
+- Segments stuck indefinitely in "Combining Media" status
+
+**Secondary Issue**: **Webhook Handler Logic Bug**
+- Successful NCA jobs marked as failed due to status processing error
+- "Unknown status: None" suggests status parsing issue in webhook handler
+
+**Tertiary Issue**: **API Integration Inconsistencies**
+- Multiple wrong endpoint URLs
+- Payload format mismatches causing 400 errors
+- Need endpoint validation and error handling improvements
+
+### 💡 SOLUTION STRATEGY
+
+**IMMEDIATE (Priority: CRITICAL)**
+1. **Fix webhook handler status processing** 
+   - Debug "Unknown status: None" error in `/webhooks/nca-toolkit`
+   - Ensure successful jobs update segment status correctly
+   - Add proper error logging for webhook processing
+
+2. **Add NCA job validation**
+   - Poll job status after 202 response to confirm job exists
+   - Implement fallback when jobs are lost
+   - Add timeout handling for missing webhooks
+
+**SHORT-TERM (Priority: HIGH)**
+3. **Fix API endpoint inconsistencies**
+   - Standardize on correct NCA endpoints
+   - Validate payload formats match current NCA API
+   - Add request/response logging for debugging
+
+4. **Implement defensive monitoring**
+   - Alert on segments stuck in "Combining Media" > 10 minutes
+   - Monitor job acceptance vs completion rates
+   - Track webhook success/failure patterns
+
+**LONG-TERM (Priority: MEDIUM)**
+5. **Add circuit breaker for NCA failures**
+6. **Implement retry logic with exponential backoff**
+7. **Create comprehensive job lifecycle monitoring dashboard**
+
+### 🚀 IMMEDIATE RECOVERY ACTION
+
+**For Current Stuck Segment** (`recXwiLcbFPcIQxI7`):
+1. Manually update segment status from "Combining Media" to "Ready"
+2. Retry combination request with proper monitoring
+3. Use successful webhook pattern from job `025c2adc-710c-431e-9779-a055cc1bea43` as reference
+
+**Business Impact**: HIGH - Core media combination pipeline unreliable, segments stuck indefinitely
+
+**Resolution Timeline**: 2-4 hours for critical fixes, 1-2 days for complete solution
+
+---
+
+### 📊 WEBHOOK ERROR INVESTIGATION - 2025-06-05 11:45
+
+**Job ID**: recUtduQk3YxVfp65
+**Operation**: image_zoom
+**Error Time**: 2025-06-05 11:31am
+
+#### 🎯 ERROR IDENTIFIED: Airtable Status Field Update Issue
+
+**Error Details**:
+- Type: `INVALID_MULTIPLE_CHOICE_OPTIONS`
+- Message: `Insufficient permissions to create new select option ""processed""`
+- API Response: 422 Unprocessable Entity
+
+#### 🔍 ROOT CAUSE ANALYSIS
+
+**Primary Issue**: Status Value Mismatch
+- Webhook attempts to set status to `'processed'`
+- But this is NOT a valid status in the config constants
+- Valid statuses are: `pending`, `processing`, `completed`, `failed`
+
+**Location**: `/api/webhooks.py` line ~258
 ```python
-# nca_service.py line ~89
-response = self.session.post(
-    f"{self.base_url}/api/media/combine",  # ❌ WRONG ENDPOINT
-    json=payload
-)
+airtable_job_updates = {'Status': 'processed', 'Error Message': None}
 ```
 
-**CORRECT NCA TOOLKIT ENDPOINT:**
-According to `/coding_resources/nca_toolkit_notes.txt`, the correct endpoint should be:
-- `/v1/ffmpeg/compose` - For combining audio and video files
+**Secondary Issue**: Potential JSON Double-Encoding
+- Error shows double quotes around "processed" 
+- Suggests the status value might be getting JSON-encoded twice
+- This turns `'processed'` into `'"processed"'` when sent to Airtable
 
-### Technical Details
-**Current Implementation Issues:**
-1. ❌ Using `/api/media/combine` (non-existent endpoint)
-2. ❌ Using `/api/media/concatenate` (non-existent endpoint) 
-3. ❌ Using `/api/media/add-music` (non-existent endpoint)
-4. ❌ Missing required `filename` parameter for FFmpeg operations
-5. ❌ Incorrect payload structure for NCA API
+#### 🚨 CRITICAL FINDINGS
 
-**Expected NCA Payload Structure:**
-```json
-{
-  "inputs": [
-    {"file_url": "https://video-url.mp4"},
-    {"file_url": "https://audio-url.mp3"}
-  ],
-  "filename": "output_combined.mp4",  // CRITICAL: Required for FFmpeg
-  "webhook_url": "https://callback-url.com"
-}
+1. **Wrong Status Value**: The webhook handler uses `'processed'` which is not a defined status constant
+2. **Should Use**: `config.STATUS_COMPLETED` (which equals `'completed'`)
+3. **Airtable Interpretation**: Sees `"processed"` as a new option to create, not an existing option
+
+#### 💡 SOLUTION
+
+**IMMEDIATE FIX**: ✅ **FIXED ON 2025-06-05**
+Change line in `nca_toolkit_webhook` function:
+```python
+# FROM:
+airtable_job_updates = {'Status': 'processed', 'Error Message': None}
+
+# TO:
+airtable_job_updates = {'Status': config.STATUS_COMPLETED, 'Error Message': None}
 ```
 
-### Error Pattern Recognition
-**NEW ERROR**: This is the first occurrence of this specific NCA API mismatch error.
-**RELATED PATTERN**: Similar to previous GoAPI response parsing issues where the service integration didn't match the actual API specification.
+**Fix Applied**: Line 290 in `/api/webhooks.py` has been updated to use `config.STATUS_COMPLETED`
 
-### Solution Brief
-**FILES TO UPDATE:**
-1. **`/services/nca_service.py`** - Update all media processing methods:
-   - `combine_audio_video()` → Use `/v1/ffmpeg/compose`
-   - `concatenate_videos()` → Use `/v1/video/combine` 
-   - `add_background_music()` → Use `/v1/ffmpeg/compose` with audio mixing filters
+**ADDITIONAL CHECKS**:
+1. Verify no JSON encoding is happening in `update_job()` method
+2. Check all hardcoded status values match config constants
+3. Ensure Airtable Jobs table has all required status options
 
-**REQUIRED CHANGES:**
-1. ✅ **Update API endpoints** to match NCA Toolkit v1 specification
-2. ✅ **Fix payload structure** to include required `filename` parameter  
-3. ✅ **Add proper FFmpeg filter configuration** for audio/video combination
-4. ✅ **Update error handling** for NCA-specific response format
+#### 📋 AFFECTED CODE PATTERNS
 
-**CRITICAL IMPLEMENTATION NOTES:**
-- **MUST include `filename` with extension** (e.g., "output.mp4") to avoid FFmpeg format detection errors
-- **Use proper FFmpeg filters** for audio/video combination instead of simple merge
-- **Follow NCA webhook pattern** with job_id and proper response handling
+Search for all instances of hardcoded status values:
+- `'processed'` → Should be `config.STATUS_COMPLETED`
+- `'pending'` → Should be `config.STATUS_PENDING`
+- `'processing'` → Should be `config.STATUS_PROCESSING`
+- `'failed'` → Should be `config.STATUS_FAILED`
 
-### Impact Assessment
-- **Immediate**: All segment media combination requests failing
-- **Workflow**: Prevents progression from individual segments to combined videos
-- **User Experience**: Silent failure with generic error message
-- **Production**: Affects end-to-end video generation pipeline
+**Business Impact**: HIGH - All successful NCA webhook callbacks fail to update job status
 
-### Recommended Next Steps
-1. **Update NCA service methods** to use correct API endpoints and payload structure
-2. **Test with single segment** to verify fix before bulk processing
-3. **Update error logging** to provide more specific NCA error details
-4. **Document NCA integration patterns** for future reference
+---
 
-### Status
-**✅ FIXED** - Root cause confirmed as API endpoint mismatch in NCA service integration. Corrected API calls implemented.
+---
 
-### Resolution Details (2025-05-29 17:45)
+### 🚨 IMAGE_ZOOM WEBHOOK PROCESSING FAILURE - 2025-06-05 12:05 AWST
 
-**CHANGES IMPLEMENTED:**
-1. **✅ Updated API endpoints** to match NCA Toolkit v1 specification:
-   - `combine_audio_video()`: `/api/media/combine` → `/v1/ffmpeg/compose`
-   - `concatenate_videos()`: `/api/media/concatenate` → `/v1/video/combine`
-   - `add_background_music()`: `/api/media/add-music` → `/v1/ffmpeg/compose`
-   - `get_job_status()`: `/api/jobs/{job_id}` → `/v1/job/status/{job_id}`
+**Job ID**: `recOK6focLg8kSwmq`
+**Operation**: `image_zoom`
+**Target Segment**: `recxGRBRi1Qe9sLDn`
+**External NCA Job ID**: `c24eb0c9-3479-4236-b0f9-81d774141e92`
 
-2. **✅ Fixed payload structure** to include required `filename` parameter with extension
-3. **✅ Added proper FFmpeg filter configuration** for audio/video operations
-4. **✅ Updated method signatures** to support custom_id parameter for better tracking
+#### 🎯 ERROR IDENTIFIED: Webhook URL Parameter Extraction Failure
 
-**TECHNICAL IMPROVEMENTS:**
-- Added automatic file extension validation and appending
-- Implemented proper FFmpeg audio mixing for background music
-- Enhanced error logging with operation context
-- Updated payload structure to use NCA's `inputs` array format
+**Error Message**: "'target_id' (segment_id) not available for successful image_zoom operation."
 
-**VERIFICATION NEEDED:**
-- Test segment `recXwiLcbFPcIQxI7` media combination
-- Monitor production logs for successful NCA API calls
-- Validate webhook responses contain proper result URLs
+#### 🔍 ROOT CAUSE ANALYSIS
+
+**Primary Issue**: **Webhook Request.args Parsing Failure**
+- NCA job completed successfully (External Job ID: `c24eb0c9-3479-4236-b0f9-81d774141e92`)
+- Webhook URL correctly constructed: `https://youtube-video-engine.fly.dev/webhooks/nca-toolkit?job_id=recOK6focLg8kSwmq&operation=image_zoom&target_id=recxGRBRi1Qe9sLDn`
+- Target segment exists and has all required assets: ✅ Images (4), ✅ Voiceover, ✅ Voiceover+Video
+- But webhook handler `request.args.get('target_id')` returns `None`
+
+**Code Location**: `/api/webhooks.py` line ~335-340
+```python
+elif operation == 'image_zoom':
+    segment_id_for_zoom = target_id # target_id = request.args.get('target_id') from line ~129
+    if not segment_id_for_zoom:
+        err_msg_zoom = "'target_id' (segment_id) not available for successful image_zoom operation."
+```
+
+**Secondary Issue**: **Job Status Inconsistency**
+- NCA reports job as completed successfully
+- Airtable Job status shows "completed"
+- But segment status remains "Generating Video" instead of "Video Ready"
+- No output URL processed due to primary issue
+
+#### 🧪 EVIDENCE COLLECTED
+
+**✅ NCA Job Verification**:
+- External Job ID: `c24eb0c9-3479-4236-b0f9-81d774141e92` ✅ EXISTS
+- Job Status: `completed` ✅ SUCCESS
+- Expected Output URL: `https://phi-bucket.nyc3.digitaloceanspaces.com/phi-bucket/c24eb0c9-3479-4236-b0f9-81d774141e92_output_0.mp4`
+
+**✅ Segment Data Verification** (`recxGRBRi1Qe9sLDn`):
+- Status: "Generating Video" (SHOULD BE: "Video Ready")
+- Video Style: "Zoom" ✅ CORRECT
+- Duration: 3 seconds ✅ VALID
+- Assets: 4 images, voiceover, combined video ✅ COMPLETE
+- Last Modified: 2025-06-05T04:05:07.000Z
+
+**✅ Webhook URL Construction** (from `/api/routes_v2.py` line 963):
+```python
+nca_webhook_params = f"job_id={job_id}&operation=image_zoom&target_id={data['segment_id']}"
+webhook_url_nca = f"{config.WEBHOOK_BASE_URL}/webhooks/nca-toolkit?{nca_webhook_params}"
+```
+
+**🚨 Webhook Processing Failure**:
+- URL Parameters: `?job_id=recOK6focLg8kSwmq&operation=image_zoom&target_id=recxGRBRi1Qe9sLDn`
+- `request.args.get('target_id')` returns `None` ❌ EXTRACTION FAILED
+
+#### 💡 DEBUGGING INSIGHTS
+
+**Potential Causes**:
+1. **Request Processing Issue**: Flask request.args not properly parsing URL parameters from NCA webhook callback
+2. **URL Encoding**: Target_id might be getting URL-encoded/decoded incorrectly
+3. **Request Method Mismatch**: NCA might be sending POST with different parameter handling
+4. **Flask Blueprint Context**: Webhook route might have request context issues
+
+**Pattern Matching**: Similar to previous status field issues where valid data exists but extraction fails
+
+#### 🚀 SOLUTION STRATEGY
+
+**IMMEDIATE (Priority: CRITICAL)**
+1. **Add Debug Logging to Webhook Handler**
+   ```python
+   # In webhooks.py line ~129, add comprehensive logging:
+   logger.info(f"NCA Webhook URL: {request.url}")
+   logger.info(f"Request Args: {dict(request.args)}")
+   logger.info(f"Request Method: {request.method}")
+   logger.info(f"Request Headers: {dict(request.headers)}")
+   ```
+
+2. **Implement Robust Parameter Extraction**
+   ```python
+   # Fallback extraction methods:
+   target_id = (request.args.get('target_id') or 
+                request.form.get('target_id') or
+                request.json.get('target_id') if request.json else None)
+   ```
+
+3. **Manual Processing for Current Job**
+   - Extract output URL: `https://phi-bucket.nyc3.digitaloceanspaces.com/phi-bucket/c24eb0c9-3779-4236-b0f9-81d774141e92_output_0.mp4`
+   - Update segment `recxGRBRi1Qe9sLDn` status to "Video Ready"
+   - Update segment with Generated Video URL
+
+**SHORT-TERM (Priority: HIGH)**
+4. **Fix Webhook Parameter Parsing**
+   - Investigate Flask request handling for NCA webhook format
+   - Test with various parameter extraction methods
+   - Add parameter validation and fallback mechanisms
+
+5. **Add Webhook Processing Monitoring**
+   - Alert on parameter extraction failures
+   - Track webhook success/failure rates by operation type
+   - Monitor URL parameter patterns
+
+**LONG-TERM (Priority: MEDIUM)**
+6. **Implement Webhook Processing Circuit Breaker**
+7. **Add Comprehensive Request Debugging Tools**
+8. **Create Webhook Processing Health Dashboard**
+
+#### 📊 BUSINESS IMPACT
+
+**Severity**: **HIGH** - Video generation pipeline broken for image_zoom operations
+**Affected Operations**: All segments with "Video Style: Zoom" fail to complete
+**Data Integrity**: NCA jobs succeed but segments stuck in "Generating Video"
+**User Experience**: Videos appear incomplete despite successful processing
+
+#### 🔧 IMMEDIATE RECOVERY ACTION
+
+**For Current Stuck Segment**:
+1. Manually update segment `recxGRBRi1Qe9sLDn`:
+   ```python
+   airtable.update_segment('recxGRBRi1Qe9sLDn', {
+       'Status': 'Video Ready',
+       'Generated Video': 'https://phi-bucket.nyc3.digitaloceanspaces.com/phi-bucket/c24eb0c9-3479-4236-b0f9-81d774141e92_output_0.mp4'
+   })
+   ```
+
+**Resolution Timeline**: 2-4 hours for critical fix, webhook parameter debugging required
+
+**Next Steps**: 
+1. Debug webhook request.args parsing issue
+2. Test parameter extraction with live NCA webhook
+3. Implement robust fallback parameter extraction
+4. Add comprehensive webhook request logging
+
+---

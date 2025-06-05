@@ -46,6 +46,7 @@ class AirtableService:
     
     def __init__(self):
         """Initialize Airtable service."""
+        self.logger = logging.getLogger(__name__) # Initialize logger for the service instance
         self.config = get_config()()
         self.api = Api(self.config.AIRTABLE_API_KEY)
         self.base = self.api.base(self.config.AIRTABLE_BASE_ID)
@@ -118,6 +119,53 @@ class AirtableService:
             fields['Error Details'] = error_details
         return self.update_video(video_id, fields) if fields else self.get_video(video_id)
     
+    def safe_update_video_status(self, video_id: str, status: str, error_details: Optional[str] = None, 
+                                additional_fields: Optional[Dict] = None) -> Dict:
+        """Safely update video status with fallback handling.
+        Note: The existing Videos table doesn't have a Status field, so this logs the intent but may not update.
+        """
+        fields = additional_fields.copy() if additional_fields else {}
+        
+        # Try to add Status field if it exists, otherwise just log
+        try:
+            fields['Status'] = status
+            record = self.videos_table.update(video_id, fields)
+            api_logger.log_api_response('airtable', 'safe_update_video_status', 200, 
+                                      {'video_id': video_id, 'status': status, 'success': True})
+            return record
+        except Exception as e:
+            # Log the original error and try without Status field
+            logger.warning(f"Failed to set video {video_id} status to '{status}' (field may not exist): {e}")
+            api_logger.log_error('airtable', e, {
+                'operation': 'safe_update_video_status', 
+                'video_id': video_id, 
+                'intended_status': status
+            })
+            
+            # Try without Status field and with error details if provided
+            try:
+                fields_without_status = additional_fields.copy() if additional_fields else {}
+                if error_details:
+                    fields_without_status['Error Details'] = error_details
+                
+                if fields_without_status:
+                    record = self.videos_table.update(video_id, fields_without_status)
+                else:
+                    record = self.get_video(video_id)
+                
+                logger.info(f"Updated video {video_id} without Status field (status '{status}' intended)")
+                api_logger.log_api_response('airtable', 'safe_update_video_status', 200, 
+                                          {'video_id': video_id, 'status': status, 'no_status_field': True})
+                return record
+            except Exception as fallback_error:
+                # If even the fallback fails, log and re-raise original error
+                logger.error(f"Failed to update video {video_id} even without Status field: {fallback_error}")
+                api_logger.log_error('airtable', fallback_error, {
+                    'operation': 'safe_update_video_status_fallback', 
+                    'video_id': video_id
+                })
+                raise e  # Re-raise original error
+    
     # Segment operations
     def create_segments(self, video_id: str, segments: List[Dict]) -> List[Dict]:
         """Create multiple segment records."""
@@ -176,15 +224,91 @@ class AirtableService:
             api_logger.log_error('airtable', e, {'operation': 'update_segment', 'segment_id': segment_id})
             raise
     
-    def get_video_segments(self, video_id: str) -> List[Dict]:
-        """Get all segments for a video."""
+    def safe_update_segment_status(self, segment_id: str, status: str, additional_fields: Optional[Dict] = None) -> Dict:
+        """Safely update segment status with fallback to 'Undefined'."""
+        fields = additional_fields.copy() if additional_fields else {}
+        fields['Status'] = status
+        
         try:
-            # Use FIND function for linked record search
-            formula = f"FIND('{video_id}', {{Videos}}) > 0"
-            segments = self.segments_table.all(formula=formula, sort=['SRT Segment ID'])  # Sort by SRT Segment ID
-            return segments
+            # Try to update with the intended status
+            record = self.segments_table.update(segment_id, fields)
+            api_logger.log_api_response('airtable', 'safe_update_segment_status', 200, 
+                                      {'segment_id': segment_id, 'status': status, 'success': True})
+            return record
         except Exception as e:
-            api_logger.log_error('airtable', e, {'operation': 'get_video_segments', 'video_id': video_id})
+            # Log the original error
+            logger.warning(f"Failed to set segment {segment_id} status to '{status}': {e}")
+            api_logger.log_error('airtable', e, {
+                'operation': 'safe_update_segment_status', 
+                'segment_id': segment_id, 
+                'intended_status': status
+            })
+            
+            # Try fallback to 'Undefined' status
+            try:
+                fields['Status'] = 'Undefined'
+                record = self.segments_table.update(segment_id, fields)
+                logger.info(f"Successfully set segment {segment_id} status to 'Undefined' as fallback")
+                api_logger.log_api_response('airtable', 'safe_update_segment_status', 200, 
+                                          {'segment_id': segment_id, 'status': 'Undefined', 'fallback': True})
+                return record
+            except Exception as fallback_error:
+                # If even 'Undefined' fails, log and re-raise original error
+                logger.error(f"Even 'Undefined' status failed for segment {segment_id}: {fallback_error}")
+                api_logger.log_error('airtable', fallback_error, {
+                    'operation': 'safe_update_segment_status_fallback',
+                    'segment_id': segment_id
+                })
+                raise e  # Re-raise original error
+
+    def get_video_segments(self, video_id: str) -> List[Dict]:
+        """Get all segments for a video by retrieving the video record and its linked segment IDs."""
+        try:
+            self.logger.info(f"Fetching video record {video_id} to get linked segments.")
+            video_record = self.videos_table.get(video_id)
+
+            if not video_record or 'fields' not in video_record or 'Segments' not in video_record['fields']:
+                self.logger.warning(f"Video record {video_id} not found or has no 'Segments' field.", extra={'operation': 'get_video_segments', 'video_id': video_id})
+                return []
+
+            segment_ids = video_record['fields'].get('Segments', []) # Ensure 'Segments' field exists
+            if not segment_ids:
+                self.logger.info(f"No segment IDs linked in 'Segments' field for video {video_id}.", extra={'operation': 'get_video_segments', 'video_id': video_id})
+                return []
+
+            self.logger.info(f"Found {len(segment_ids)} segment IDs linked to video {video_id}: {segment_ids}")
+
+            segments_data = []
+            for segment_id in segment_ids:
+                segment_record = self.segments_table.get(segment_id)
+                if segment_record:
+                    segments_data.append(segment_record)
+                else:
+                    self.logger.warning(f"Segment record {segment_id} linked from video {video_id} not found in Segments table.", extra={'operation': 'get_video_segments', 'video_id': video_id, 'segment_id': segment_id})
+            
+            # Sort segments by 'SRT Segment ID'
+            # This key attempts to sort numerically if 'SRT Segment ID' is an int or a string representing an int,
+            # otherwise sorts as string. Handles missing values by pushing them to the end.
+            def get_sort_key(segment_record):
+                fields = segment_record.get('fields', {})
+                srt_id_value = fields.get('SRT Segment ID')
+                if srt_id_value is None:
+                    return (float('inf'), '') # Sort Nones last
+                if isinstance(srt_id_value, (int, float)):
+                    return (0, srt_id_value)
+                if isinstance(srt_id_value, str):
+                    try:
+                        return (0, int(srt_id_value)) # Try to convert string to int
+                    except ValueError:
+                        return (1, srt_id_value) # Sort as string if not convertible
+                return (2, srt_id_value) # Fallback for other types
+
+            segments_data.sort(key=get_sort_key)
+            self.logger.info(f"Returning {len(segments_data)} segments for video {video_id} after fetching and sorting.")
+            return segments_data
+
+        except Exception as e:
+            self.logger.error(f"Error in get_video_segments for video_id {video_id}: {str(e)}", extra={'operation': 'get_video_segments', 'video_id': video_id}, exc_info=True)
             raise
     
     # Voice operations
@@ -268,20 +392,99 @@ class AirtableService:
             api_logger.log_error('airtable', e, {'operation': 'update_job', 'job_id': job_id})
             raise
     
-    def complete_job(self, job_id: str, response_payload: Optional[Dict] = None) -> Dict:
-        """Mark a job as completed."""
-        fields = {'Status': self.config.STATUS_COMPLETED}
-        if response_payload:
-            fields['Response Payload'] = str(response_payload)
-        return self.update_job(job_id, fields)
+    def safe_update_job_status(self, job_id: str, status: str, additional_fields: Optional[Dict] = None) -> Dict:
+        """Safely update job status with fallback to 'Undefined'."""
+        fields = additional_fields.copy() if additional_fields else {}
+        fields['Status'] = status
+        
+        try:
+            # Try to update with the intended status
+            record = self.jobs_table.update(job_id, fields)
+            
+            # Log status changes
+            api_logger.log_job_status(job_id, status, fields)
+            api_logger.log_api_response('airtable', 'safe_update_job_status', 200, 
+                                      {'job_id': job_id, 'status': status, 'success': True})
+            return record
+        except Exception as e:
+            # Log the original error
+            logger.warning(f"Failed to set job {job_id} status to '{status}': {e}")
+            api_logger.log_error('airtable', e, {
+                'operation': 'safe_update_job_status', 
+                'job_id': job_id, 
+                'intended_status': status
+            })
+            
+            # Try fallback to 'Undefined' status
+            try:
+                fields['Status'] = 'Undefined'
+                record = self.jobs_table.update(job_id, fields)
+                logger.info(f"Successfully set job {job_id} status to 'Undefined' as fallback")
+                api_logger.log_job_status(job_id, 'Undefined', fields)
+                api_logger.log_api_response('airtable', 'safe_update_job_status', 200, 
+                                          {'job_id': job_id, 'status': 'Undefined', 'fallback': True})
+                return record
+            except Exception as fallback_error:
+                # If even 'Undefined' fails, log and re-raise original error
+                logger.error(f"Even 'Undefined' status failed for job {job_id}: {fallback_error}")
+                api_logger.log_error('airtable', fallback_error, {
+                    'operation': 'safe_update_job_status_fallback', 
+                    'job_id': job_id
+                })
+                raise e  # Re-raise original error
     
-    def fail_job(self, job_id: str, error_details: str) -> Dict:
+    def safe_update_job_type(self, job_id: str, job_type: str, additional_fields: Optional[Dict] = None) -> Dict:
+        """Safely update job type with fallback to 'Undefined'."""
+        fields = additional_fields.copy() if additional_fields else {}
+        fields['Type'] = job_type
+        
+        try:
+            # Try to update with the intended type
+            record = self.jobs_table.update(job_id, fields)
+            api_logger.log_api_response('airtable', 'safe_update_job_type', 200, 
+                                      {'job_id': job_id, 'type': job_type, 'success': True})
+            return record
+        except Exception as e:
+            # Log the original error
+            logger.warning(f"Failed to set job {job_id} type to '{job_type}': {e}")
+            api_logger.log_error('airtable', e, {
+                'operation': 'safe_update_job_type', 
+                'job_id': job_id, 
+                'intended_type': job_type
+            })
+            
+            # Try fallback to 'Undefined' type
+            try:
+                fields['Type'] = 'Undefined'
+                record = self.jobs_table.update(job_id, fields)
+                logger.info(f"Successfully set job {job_id} type to 'Undefined' as fallback")
+                api_logger.log_api_response('airtable', 'safe_update_job_type', 200, 
+                                          {'job_id': job_id, 'type': 'Undefined', 'fallback': True})
+                return record
+            except Exception as fallback_error:
+                # If even 'Undefined' fails, log and re-raise original error
+                logger.error(f"Even 'Undefined' type failed for job {job_id}: {fallback_error}")
+                api_logger.log_error('airtable', fallback_error, {
+                    'operation': 'safe_update_job_type_fallback', 
+                    'job_id': job_id
+                })
+                raise e  # Re-raise original error
+    
+    def complete_job(self, job_id: str, response_payload: Optional[Dict] = None, notes: Optional[str] = None) -> Dict:
+        """Mark a job as completed."""
+        additional_fields = {}
+        if response_payload:
+            additional_fields['Response Payload'] = str(response_payload)
+        if notes:
+            additional_fields['Notes'] = notes
+        return self.safe_update_job_status(job_id, self.config.STATUS_COMPLETED, additional_fields)
+    
+    def fail_job(self, job_id: str, error_details: str, notes: Optional[str] = None) -> Dict:
         """Mark a job as failed."""
-        fields = {
-            'Status': self.config.STATUS_FAILED,
-            'Error Details': error_details
-        }
-        return self.update_job(job_id, fields)
+        additional_fields = {'Error Details': error_details}
+        if notes:
+            additional_fields['Notes'] = notes
+        return self.safe_update_job_status(job_id, self.config.STATUS_FAILED, additional_fields)
     
     # Webhook event operations
     def create_webhook_event(self, service: str, endpoint: str, payload: Dict,
@@ -308,18 +511,25 @@ class AirtableService:
             api_logger.log_error('airtable', e, {'operation': 'create_webhook_event'})
             raise
     
-    def mark_webhook_processed(self, event_id: str, success: bool = True) -> Dict:
-        """Mark a webhook event as processed."""
+    def mark_webhook_processed(self, event_id: str, success: bool = True, notes: Optional[str] = None) -> Dict:
+        """Mark a webhook event as processed and optionally add notes."""
         try:
             fields = {
                 'Processed': 'Yes',  # Using Yes/No instead of boolean
                 'Success': 'Yes' if success else 'No'
             }
+            if notes is not None:
+                fields['Notes'] = notes
+            
             record = self.webhook_events_table.update(event_id, fields)
+            # Log the main action; detailed params can be inferred from context or added if APILogger is extended
+            api_logger.log_api_response('airtable', 'mark_webhook_processed', 200, record)
             return record
         except Exception as e:
             api_logger.log_error('airtable', e, {'operation': 'mark_webhook_processed', 
-                                               'event_id': event_id})
+                                               'event_id': event_id,
+                                               'success': success,
+                                               'notes_provided': notes is not None})
             raise
     
     # Helper methods for existing video table structure

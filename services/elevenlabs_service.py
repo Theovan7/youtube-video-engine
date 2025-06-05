@@ -67,82 +67,79 @@ class ElevenLabsService:
             api_logger.log_error('elevenlabs', e, {'operation': 'get_available_voices'})
             raise
     
-    def generate_voice(self, text: str, voice_id: str, 
-                      stability: float = 0.5, similarity_boost: float = 0.5,
-                      webhook_url: Optional[str] = None) -> Dict:
-        """Generate voice from text."""
+    def generate_voice_sync(self, text: str, voice_id: str, 
+                           stability: float = 0.5, similarity_boost: float = 0.5,
+                           speed: float = 1.0, style_exaggeration: float = 0.0,
+                           use_speaker_boost: bool = True) -> Dict:
+        """Generate voice synchronously - no webhooks needed.
+        
+        ElevenLabs standard TTS API does not support webhooks.
+        This method performs synchronous text-to-speech conversion.
+        """
         try:
             payload = {
                 'text': text,
                 'model_id': 'eleven_monolingual_v1',
                 'voice_settings': {
                     'stability': stability,
-                    'similarity_boost': similarity_boost
+                    'similarity_boost': similarity_boost,
+                    'speed': speed,
+                    'style_exaggeration': style_exaggeration,
+                    'use_speaker_boost': use_speaker_boost
                 }
             }
             
-            api_logger.log_api_request('elevenlabs', 'generate_voice', {
+            api_logger.log_api_request('elevenlabs', 'generate_voice_sync', {
                 'voice_id': voice_id,
-                'text_length': len(text),
-                'webhook_url': webhook_url
+                'text_length': len(text)
             })
             
-            if webhook_url:
-                # Use async endpoint with webhook
-                # Note: The webhook should be passed as query parameter for async TTS
-                endpoint = f"{self.base_url}/text-to-speech/{voice_id}?enable_logging=true"
-                headers = {
-                    'xi-api-key': self.api_key,
-                    'Content-Type': 'application/json'
-                }
-                
-                # Add webhook callback info
-                payload['webhook_url'] = webhook_url
-                payload['webhook_method'] = 'POST'
-                
-                response = self.session.post(
-                    endpoint, 
-                    json=payload,
-                    headers=headers
-                )
-                response.raise_for_status()
-                
-                # For async requests with webhook, response includes job information
-                result = {
-                    'job_id': response.headers.get('request-id', str(uuid.uuid4())),
-                    'status': 'processing',
-                    'webhook_url': webhook_url
-                }
-            else:
-                # Use sync endpoint
-                endpoint = f"{self.base_url}/text-to-speech/{voice_id}"
-                headers = {
-                    'xi-api-key': self.api_key,
-                    'Content-Type': 'application/json',
-                    'Accept': 'audio/mpeg'
-                }
-                
-                response = self.session.post(
-                    endpoint, 
-                    json=payload,
-                    headers=headers,
-                    stream=True
-                )
-                response.raise_for_status()
-                
-                # For sync requests, return audio data
-                result = {
-                    'audio_data': response.content,
-                    'status': 'completed'
-                }
+            # Use synchronous endpoint - no webhook support needed
+            endpoint = f"{self.base_url}/text-to-speech/{voice_id}"
+            headers = {
+                'xi-api-key': self.api_key,
+                'Content-Type': 'application/json',
+                'Accept': 'audio/mpeg'
+            }
             
-            api_logger.log_api_response('elevenlabs', 'generate_voice', 
-                                      response.status_code, {'status': 'success'})
+            response = self.session.post(
+                endpoint, 
+                json=payload,
+                headers=headers
+            )
+            response.raise_for_status()
+            
+            # Return audio data immediately
+            result = {
+                'audio_data': response.content,
+                'status': 'completed',
+                'request_id': response.headers.get('request-id', str(uuid.uuid4()))
+            }
+            
+            api_logger.log_api_response('elevenlabs', 'generate_voice_sync', 
+                                      response.status_code, {
+                                          'status': 'success',
+                                          'audio_size_bytes': len(response.content)
+                                      })
             
             return result
         except Exception as e:
-            api_logger.log_error('elevenlabs', e, {'operation': 'generate_voice'})
+            api_logger.log_error('elevenlabs', e, {'operation': 'generate_voice_sync'})
             raise
+    
+    def generate_voice(self, text: str, voice_id: str, 
+                      stability: float = 0.5, similarity_boost: float = 0.5,
+                      speed: float = 1.0, style_exaggeration: float = 0.0,
+                      use_speaker_boost: bool = True, # Added use_speaker_boost
+                      webhook_url: Optional[str] = None) -> Dict:
+        """Generate voice from text.
+        
+        DEPRECATED: Use generate_voice_sync() instead.
+        ElevenLabs standard TTS API does not support webhooks.
+        This method now redirects to synchronous processing.
+        """
+        logger.warning("generate_voice() with webhook_url is deprecated. Use generate_voice_sync() instead.")
+        return self.generate_voice_sync(text, voice_id, stability, similarity_boost, speed, style_exaggeration, use_speaker_boost)
     
     def get_voice_settings(self, voice_id: str) -> Dict:
         """Get voice settings."""
