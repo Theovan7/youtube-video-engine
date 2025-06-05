@@ -318,7 +318,8 @@ def combine_segment_media():
             video_url=video_url,
             audio_url=voiceover_url,
             output_filename=f"segment_{data['segment_id']}_combined.mp4",
-            webhook_url=webhook_url
+            webhook_url=webhook_url,
+            custom_id=job_id
         )
         
         # Update job with external ID

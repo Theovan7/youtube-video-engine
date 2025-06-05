@@ -360,7 +360,8 @@ def combine_segment_media_webhook():
             video_url=video_url,
             audio_url=voiceover_url,
             output_filename=f"segment_{data['record_id']}_combined.mp4",
-            webhook_url=webhook_url
+            webhook_url=webhook_url,
+            custom_id=job_id
         )
         
         # Update job with external ID
@@ -468,7 +469,8 @@ def combine_all_segments_webhook():
         result = nca.concatenate_videos(
             video_urls=video_urls,
             output_filename=f"video_{record_id}_combined.mp4",
-            webhook_url=webhook_url
+            webhook_url=webhook_url,
+            custom_id=job_id
         )
         
         # Update job with external ID
@@ -672,7 +674,8 @@ def add_music_to_video_webhook():
             music_url=music_url,
             output_filename=output_filename,
             # volume_ratio=0.2, # Example, adjust as needed or make configurable in Airtable
-            webhook_url=nca_webhook_url
+            webhook_url=nca_webhook_url,
+            custom_id=job_id  # Pass the Airtable job ID to ensure it's returned in webhook
         )
         
         airtable.update_job(job_id, {

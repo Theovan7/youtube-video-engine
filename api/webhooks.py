@@ -146,8 +146,18 @@ def nca_toolkit_webhook():
     param_video_id = (request.args.get('video_id') or 
                request.form.get('video_id') or
                (request.json.get('video_id') if request.json else None))
+    
+    # FALLBACK: If payload.id is null/missing, try to get job_id from URL parameters
+    # This handles NCA endpoints that don't properly return custom_id (concatenate, ffmpeg/compose)
+    if not airtable_job_id:
+        url_job_id = request.args.get('job_id')
+        if url_job_id:
+            logger.info(f"NCA webhook payload.id is null/missing, using job_id from URL parameter: {url_job_id}")
+            airtable_job_id = url_job_id
+        else:
+            logger.warning("No job_id found in payload.id or URL parameters")
 
-    logger.info(f"NCA webhook received. Airtable Job ID (from payload.id): {airtable_job_id}, NCA Internal Job ID (from payload.job_id): {nca_internal_job_id}, Operation: {param_operation}, Target ID: {param_target_id}, Video ID: {param_video_id}")
+    logger.info(f"NCA webhook received. Airtable Job ID (from payload.id or URL): {airtable_job_id}, NCA Internal Job ID (from payload.job_id): {nca_internal_job_id}, Operation: {param_operation}, Target ID: {param_target_id}, Video ID: {param_video_id}")
     logger.info(f"Full payload: {json.dumps(payload, indent=1)}") # Log full payload for debugging
 
     if not airtable_job_id:
@@ -155,12 +165,10 @@ def nca_toolkit_webhook():
         # Try to log an event even if we can't link it
         try:
             airtable.create_webhook_event(
-                source="NCA",
-                payload_json=json.dumps(payload),
-                related_job_id=None,
-                status_code_received=payload.get('code'),
-                processed_successfully=False,
-                notes=f"Webhook for operation {param_operation} on target {param_target_id}. Error: Missing 'id' (Airtable Job ID) in payload."
+                service="NCA",
+                endpoint=payload.get('endpoint', 'N/A'),
+                payload=payload,
+                related_job_id=None
             )
         except Exception as e_event:
             logger.error(f"Failed to create webhook event record for unprocessable NCA webhook: {e_event}")
@@ -589,6 +597,11 @@ def validate_nca_job_exists(job_id, max_retries=3, retry_delay=2):
 def goapi_webhook():
     """Handle GoAPI music generation callbacks."""
     try:
+        # Initialize variables to prevent UnboundLocalError
+        music_url = None
+        video_url = None
+        error_message = None
+        
         # Get webhook data
         payload = request.get_json()
         job_id = request.args.get('job_id')
@@ -839,7 +852,8 @@ def goapi_webhook():
                         music_url=music_url,
                         output_filename=f"video_{video_id}_final.mp4",
                         volume_ratio=0.2,
-                        webhook_url=webhook_url
+                        webhook_url=webhook_url,
+                        custom_id=music_job_id  # Pass the Airtable job ID to ensure it's returned in webhook
                     )
                 
                     # ADDED: Validate that the NCA job actually exists

@@ -9,8 +9,8 @@
 
 ## Current Status
 - **Deployed**: ✅ Yes
-- **Version**: 118
-- **Last Deploy**: June 5, 2025 at 13:24 AWST (05:24 UTC)
+- **Version**: 121
+- **Last Deploy**: June 5, 2025 at 15:49 AWST (07:47 UTC)
 - **Health**: Operational
 - **Code Verification**: ✅ Verified via SSH
 
@@ -65,7 +65,7 @@ cd /project/path && fly deploy               # Build new image & deploy
 # This triggers:
 # - Dockerfile build process (COPY . . captures latest local changes)
 # - New image creation with unique tag
-# - Version increment (117 → 118)
+# - Version increment (120 → 121)
 # - Rolling update to new image
 # - Health check validation
 ```
@@ -88,7 +88,7 @@ fly-machine-exec app=youtube-video-engine command="grep -n 'SPECIFIC_CODE_PATTER
 # Examples:
 fly-machine-exec app=youtube-video-engine command="stat /app/api/routes_v2.py" id=2876e73b0de678
 fly-machine-exec app=youtube-video-engine command="ls -la /app/api/" id=2876e73b0de678
-fly-machine-exec app=youtube-video-engine command="grep -n 'def combine_all_segments_webhook' /app/api/routes_v2.py" id=2876e73b0de678
+fly-machine-exec app=youtube-video-engine command="grep -n 'def health_check' /app/app.py" id=2876e73b0de678
 
 # ✅ SUCCESS: Code found in deployed container
 # ❌ FAILURE: Code missing - redeploy required
@@ -231,7 +231,52 @@ CMD ["gunicorn", "--bind"...]                # Startup (cached)
 
 ## Deployment History
 
-### June 5, 2025 - Version 118 🚀 ✅ **VERIFIED DEPLOYMENT** ← **CURRENT**
+### June 5, 2025 - Version 121 🚀 ✅ **VERIFIED DEPLOYMENT** ← **CURRENT**
+- **Time**: 15:49 AWST (07:47 UTC)
+- **Action**: Complete deployment with enhanced 7-step process including code verification
+- **Process**: Pre-check → Validate → Deploy → Health Check → **SSH Code Verification** → Document
+- **Image**: `deployment-01JWZGY1DBJRB3KHCHXVN342RM`
+- **Previous Image**: `deployment-01JWZ9VPGCRD2HV0JVYDE5ARFN` (v120)
+- **Release ID**: `VRl7314XXwvlkHjxgbOMVvX93`
+- **Instance**: `01JWZGZ04NZVS4WXFRZ80BMBS4`
+- **Machine**: 2876e73b0de678 (misty-dew-7621)
+- **Build Time**: 12.0 seconds build + rolling update
+- **Image Size**: 229 MB (consistent)
+- **Result**: ✅ Successfully deployed, all health checks passing immediately
+- **Code Verification**: ✅ **VERIFIED** 
+  - All application files present in `/app/` with current deployment timestamps (07:47)
+  - app.py: 8,525 bytes (verified via stat, matches local exactly)
+  - routes_v2.py: 48,059 bytes (latest code, modified Jun 5, 07:43)
+  - webhooks.py: 59,484 bytes (very recent code from today, 05:43)
+  - config.py: 7,683 bytes (verified configuration)
+  - airtable_service.py: 28,931 bytes (verified, timestamp Jun 5, 01:37)
+  - nca_service.py: 26,898 bytes (verified, modified Jun 4, 12:59)
+  - elevenlabs_service.py: 7,716 bytes (current, Jun 4, 04:58)
+  - goapi_service.py: 12,520 bytes (verified, Jun 3, 12:31)
+  - Function `health_check` found at line 139 in app.py ✅
+  - All API and services directories updated with latest files
+- **SSH Verification Commands Used**:
+  - `ls -la /app/` → ✅ All files present with deployment timestamps (07:47)
+  - `ls -la /app/api/` → ✅ All API files current (routes_v2.py, webhooks.py)
+  - `ls -la /app/services/` → ✅ All service files updated
+  - `stat /app/app.py` → ✅ Size: 8,525 bytes (matches local exactly)
+  - `stat /app/config.py` → ✅ Size: 7,683 bytes (verified configuration)
+  - `grep -n "def health_check" /app/app.py` → ✅ Found at line 139
+- **Command**: `execute_command: cd /project && fly deploy`
+- **Environment**: All variables preserved (FLASK_ENV=production, PORT=8080, etc.)
+- **Configuration**: 1 CPU, 1024MB memory, shared CPU kind maintained
+- **Digest**: `sha256:81eb183de00ac80d532c39931879b21795d921639c37b4b2ecaaf7b025148280`
+- **Version Change**: 120 → 121
+- **Deployment Notes**: Clean deployment with optimized layer caching, latest code successfully verified
+- **Deployment Duration**: Build (12.0s) + Health checks (immediate) + SSH verification (~1 min total)
+
+### June 5, 2025 - Version 120 🚀 ✅ **VERIFIED DEPLOYMENT**
+- **Time**: 13:44 AWST (05:44 UTC)
+- **Action**: Previous deployment (2 hours ago)
+- **Image**: `deployment-01JWZ9VPGCRD2HV0JVYDE5ARFN`
+- **Status**: Superseded by Version 121
+
+### June 5, 2025 - Version 118 🚀 ✅ **VERIFIED DEPLOYMENT**
 - **Time**: 13:24 AWST (05:24 UTC)
 - **Action**: Complete deployment with enhanced 7-step process including code verification
 - **Process**: Pre-check → Validate → Deploy → Health Check → **SSH Code Verification** → Document
@@ -244,31 +289,7 @@ CMD ["gunicorn", "--bind"...]                # Startup (cached)
 - **Image Size**: 229 MB (consistent)
 - **Result**: ✅ Successfully deployed, all health checks passing immediately
 - **Code Verification**: ✅ **VERIFIED** 
-  - All application files present in `/app/` with current deployment timestamps (05:22)
-  - app.py: 8,525 bytes (verified via stat, matches local exactly)
-  - routes_v2.py: 48,053 bytes (latest code, modified Jun 5, 03:24)
-  - webhooks.py: 59,550 bytes (very recent code from today, 05:19)
-  - config.py: 7,683 bytes (verified configuration)
-  - airtable_service.py: 28,931 bytes (verified, timestamp Jun 5, 01:37)
-  - nca_service.py: 26,898 bytes (verified, modified Jun 4, 12:59)
-  - elevenlabs_service.py: 7,716 bytes (current, Jun 4, 04:58)
-  - goapi_service.py: 12,520 bytes (verified, Jun 3, 12:31)
-  - Function `health_check` found at line 139 in app.py ✅
-  - All API and services directories updated with latest files
-- **SSH Verification Commands Used**:
-  - `ls -la /app/` → ✅ All files present with deployment timestamps (05:22)
-  - `ls -la /app/api/` → ✅ All API files current (routes_v2.py, webhooks.py)
-  - `ls -la /app/services/` → ✅ All service files updated
-  - `stat /app/app.py` → ✅ Size: 8,525 bytes (matches local exactly)
-  - `stat /app/config.py` → ✅ Size: 7,683 bytes (verified configuration)
-  - `grep -n "def health_check" /app/app.py` → ✅ Found at line 139
-- **Command**: `execute_command: cd /project && fly deploy`
-- **Environment**: All variables preserved (FLASK_ENV=production, PORT=8080, etc.)
-- **Configuration**: 1 CPU, 1024MB memory, shared CPU kind maintained
-- **Digest**: `sha256:8d1d00609794a216ab7d28637656e69543c49aed64839095b3563df9d57f023c`
-- **Version Change**: 117 → 118
-- **Deployment Notes**: Clean deployment with optimized layer caching, latest code successfully verified
-- **Deployment Duration**: Build (15.7s) + Health checks (immediate) + SSH verification (~1 min total)
+- **Status**: Superseded by Version 121
 
 ### June 5, 2025 - Version 117 🚀 ✅ **VERIFIED DEPLOYMENT**
 - **Time**: 13:08 AWST (05:08 UTC)
@@ -283,7 +304,7 @@ CMD ["gunicorn", "--bind"...]                # Startup (cached)
 - **Image Size**: 229 MB (consistent)
 - **Result**: ✅ Successfully deployed, all health checks passing immediately
 - **Code Verification**: ✅ **VERIFIED** 
-- **Status**: Superseded by Version 118
+- **Status**: Superseded by Version 121
 
 ### June 5, 2025 - Version 116 🚀 ✅ **VERIFIED DEPLOYMENT**
 - **Time**: 12:53 AWST (04:52 UTC)
@@ -298,7 +319,7 @@ CMD ["gunicorn", "--bind"...]                # Startup (cached)
 - **Image Size**: 229 MB (consistent)
 - **Result**: ✅ Successfully deployed, all health checks passing immediately
 - **Code Verification**: ✅ **VERIFIED** 
-- **Status**: Superseded by Version 118
+- **Status**: Superseded by Version 121
 
 ### June 5, 2025 - Version 115 🚀 ✅ **VERIFIED DEPLOYMENT**
 - **Time**: 12:35 AWST (04:34 UTC)
@@ -313,7 +334,7 @@ CMD ["gunicorn", "--bind"...]                # Startup (cached)
 - **Image Size**: 229 MB (consistent)
 - **Result**: ✅ Successfully deployed, all health checks passing immediately
 - **Code Verification**: ✅ **VERIFIED** 
-- **Status**: Superseded by Version 118
+- **Status**: Superseded by Version 121
 
 ### June 5, 2025 - Version 114 🚀 ✅ **VERIFIED DEPLOYMENT**
 - **Time**: 12:00 AWST (03:59 UTC)
@@ -328,32 +349,32 @@ CMD ["gunicorn", "--bind"...]                # Startup (cached)
 - **Image Size**: 229 MB (consistent)
 - **Result**: ✅ Successfully deployed, all health checks passing immediately
 - **Code Verification**: ✅ **VERIFIED** 
-- **Status**: Superseded by Version 118
+- **Status**: Superseded by Version 121
 
 ### June 5, 2025 - Version 113 📋
 - **Time**: 11:30 AWST (03:28 UTC)
-- **Action**: Previous deployment (2 hours ago)
+- **Action**: Previous deployment (4 hours ago)
 - **Image**: `deployment-01JWZ23BDFHSXB5AXBPJW6Z7FT`
-- **Status**: Superseded by version 118
+- **Status**: Superseded by version 121
 
 ### June 5, 2025 - Version 112 📋
 - **Time**: 10:25 AWST (02:25 UTC)
 - **Action**: Previous deployment session earlier today
 - **Image**: `deployment-01JWYYEMW76DGW8CPEKTYQ86MS`
-- **Status**: Superseded by version 118
+- **Status**: Superseded by version 121
 
 ### June 5, 2025 - Version 111 📋
 - **Time**: 09:40 AWST (01:40 UTC)
 - **Action**: Previous deployment session 
 - **Image**: `deployment-01JWYVW30WTZA9T3YX1GNRW020`
-- **Status**: Superseded by version 118
+- **Status**: Superseded by version 121
 
 ### June 2, 2025 - Version 73 🚀 ✅ **VERIFIED DEPLOYMENT**
 - **Time**: 20:30 AWST (12:27 UTC)
 - **Action**: Complete deployment with enhanced 7-step process including code verification
 - **Process**: Pre-check → Validate → Deploy → Health Check → **SSH Code Verification** → Document
 - **Image**: `deployment-01JWR9PRTBFNFBSRNZV5Q4WG2Y`
-- **Status**: Superseded by version 118
+- **Status**: Superseded by version 121
 
 [Previous versions truncated for space...]
 
@@ -406,21 +427,21 @@ fly-machine-exec app=youtube-video-engine command="head -20 /app/api/routes_v2.p
 
 ---
 
-## Version 118 Details (CURRENT) ✅ VERIFIED
-- **New Image Tag**: deployment-01JWZ8K8PDH8G3ZCPWEDBJDFD7
-- **Previous Image**: deployment-01JWZ7P7WN138T0ZYA2DQ6VR9M (v117)
+## Version 121 Details (CURRENT) ✅ VERIFIED
+- **New Image Tag**: deployment-01JWZGY1DBJRB3KHCHXVN342RM
+- **Previous Image**: deployment-01JWZ9VPGCRD2HV0JVYDE5ARFN (v120)
 - **Image Size**: 229 MB
-- **Release ID**: 8z4AyglQQDp4BToOvxaaPmoyM
-- **Instance ID**: 01JWZ8MC3RCCAT2S3B2F99RVSR
+- **Release ID**: VRl7314XXwvlkHjxgbOMVvX93
+- **Instance ID**: 01JWZGZ04NZVS4WXFRZ80BMBS4
 - **Health Checks**: HTTP + TCP both passing
 - **Configuration**: 1 CPU, 1024MB memory, shared CPU kind
 - **All Services Connected**: Airtable, ElevenLabs, GoAPI, NCA
 - **Deployment Process**: **Enhanced 7-step process with SSH code verification**
 - **Code Verification**: ✅ **VERIFIED** - Latest local changes successfully deployed
-- **File Verification**: app.py (8,525 bytes), webhooks.py (59,550 bytes), routes_v2.py (48,053 bytes), config.py (7,683 bytes)
+- **File Verification**: app.py (8,525 bytes), webhooks.py (59,484 bytes), routes_v2.py (48,059 bytes), config.py (7,683 bytes)
 - **Function Location**: `health_check` at line 139 in app.py (SSH verified)
 - **Services Updated**: airtable_service.py (28,931 bytes), nca_service.py (26,898 bytes), elevenlabs_service.py (7,716 bytes), goapi_service.py (12,520 bytes)
-- **Digest**: sha256:8d1d00609794a216ab7d28637656e69543c49aed64839095b3563df9d57f023c
+- **Digest**: sha256:81eb183de00ac80d532c39931879b21795d921639c37b4b2ecaaf7b025148280
 
 ---
 
@@ -452,14 +473,16 @@ fly-machine-exec app=youtube-video-engine command="head -20 /app/api/routes_v2.p
 
 ## Recent Deployment Summary
 - **V73**: Full deployment (Jun 2, 20:30 AWST) - SSH verified
-- **V111**: Full deployment (Jun 5, 09:40 AWST) - 3.5 hours ago
-- **V112**: Full deployment (Jun 5, 10:25 AWST) - 3 hours ago
-- **V113**: Full deployment (Jun 5, 11:30 AWST) - 2 hours ago
-- **V114**: Full deployment (Jun 5, 12:00 AWST) - 84 minutes ago
-- **V115**: Full deployment (Jun 5, 12:35 AWST) - 49 minutes ago
-- **V116**: Full deployment (Jun 5, 12:53 AWST) - 31 minutes ago
-- **V117**: Full deployment (Jun 5, 13:08 AWST) - 16 minutes ago
-- **V118**: Full deployment (Jun 5, 13:24 AWST) ← **CURRENT** ✅ Code verified
+- **V111**: Full deployment (Jun 5, 09:40 AWST) - 6.25 hours ago
+- **V112**: Full deployment (Jun 5, 10:25 AWST) - 5.5 hours ago
+- **V113**: Full deployment (Jun 5, 11:30 AWST) - 4.25 hours ago
+- **V114**: Full deployment (Jun 5, 12:00 AWST) - 4 hours ago
+- **V115**: Full deployment (Jun 5, 12:35 AWST) - 3.25 hours ago
+- **V116**: Full deployment (Jun 5, 12:53 AWST) - 3 hours ago
+- **V117**: Full deployment (Jun 5, 13:08 AWST) - 2.75 hours ago
+- **V118**: Full deployment (Jun 5, 13:24 AWST) - 2.5 hours ago
+- **V120**: Full deployment (Jun 5, 13:44 AWST) - 2 hours ago
+- **V121**: Full deployment (Jun 5, 15:49 AWST) ← **CURRENT** ✅ Code verified
 
 ---
 
@@ -491,11 +514,11 @@ fly-machine-exec app=youtube-video-engine command="head -20 /app/api/routes_v2.p
 ## Notes
 - **CRITICAL**: Code verification step now MANDATORY for all deployments
 - All services (Airtable, ElevenLabs, GoAPI, NCA) connected
-- Latest: Version 118 deployed successfully with SSH-verified code deployment
+- Latest: Version 121 deployed successfully with SSH-verified code deployment
 - AI Agent maintains this log automatically with Perth timestamps
 - **Enhanced Process**: Pre-check → Validate → Deploy → Health Check → **SSH Code Verification** → Document
 - Build optimization: Layer caching effective, consistent 229MB image size
-- Deployment timing: Most efficient builds take ~13-17 seconds
+- Deployment timing: Most efficient builds take ~12-17 seconds
 - Image efficiency: Consistent 229MB size indicates optimized layer caching
 - **Lesson**: Always verify deployed code matches local changes using SSH verification
 - Container access: Full SSH capabilities via `fly-machine-exec` tool
