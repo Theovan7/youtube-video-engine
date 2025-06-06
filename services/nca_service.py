@@ -140,13 +140,12 @@ class NCAService:
             # -map 1:a:0 -> take audio from second input (audio_url)
             # -c:v libx264 -> re-encode video
             # -c:a aac -> re-encode audio to AAC
-            # -shortest -> stop when the shortest stream (audio) ends
+            # Note: Removed -shortest to allow output to extend to full audio duration
             ffmpeg_output_options_payload: List[Dict[str, Any]] = [
                 {'option': '-map', 'argument': '[v]'},
                 {'option': '-map', 'argument': '1:a:0'},
                 {'option': '-c:v', 'argument': 'libx264'},
-                {'option': '-c:a', 'argument': 'aac'},
-                {'option': '-shortest', 'argument': None}  # Python None becomes JSON null
+                {'option': '-c:a', 'argument': 'aac'}
             ]
             logger.info(f"Video will hold last frame if shorter than audio. Output duration will match audio. Video codec: libx264, Audio codec: aac.")
 
