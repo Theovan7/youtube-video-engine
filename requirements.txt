@@ -7,7 +7,7 @@ requests==2.32.3
 pyairtable==2.3.3
 
 # OpenAI integration
-openai==1.35.3
+openai==1.84.0
 
 # API utilities
 flask-cors==4.0.1
