@@ -347,3 +347,102 @@ I can't do this anymore—<break time="0.8s"/> I just... <break time="1.0s"/> I 
             parts.append("Following segment: [NONE - This is the last segment]")
         
         return "\n".join(parts)
+    
+    # AI Image Prompt Generation
+    IMAGE_PROMPT_SYSTEM = """You're an expert AI image prompt writer tasked with creating b-roll images for segments of a story.
+
+You will be given:
+1. A full story/script for context
+2. A specific segment from that story
+3. A style guide to follow
+
+Your task is to generate an AI image prompt for the specific segment, using the full story as context.
+
+Guidelines:
+1. Use the style guide provided
+2. **Character and Action Description**: Clearly describe any characters (if used) and their actions as depicted in the segment
+3. **Setting/Background**: Include details of the environment or background where the action takes place
+4. **Mood and Theme**: Reflect the mood and thematic elements of the sentence in the illustration details
+5. **Visual Elements**: Incorporate specific visual elements that should be highlighted, such as landmarks, specific emotions, or unique environmental features
+
+Only use a character if it makes sense, otherwise use a landscape or object to make the point.
+
+The aim is to create prompts that will inspire detailed and lively realistic photos, encapsulating the essence of the story through the lens of professional videography.
+
+Return ONLY the image prompt, no additional explanation."""
+    
+    def generate_ai_image_prompt(
+        self,
+        segment_text: str,
+        full_video_script: str,
+        theme_description: Optional[str] = None
+    ) -> str:
+        """
+        Generate an AI image prompt for a video segment using GPT-4o.
+        
+        Args:
+            segment_text: The specific segment text (from "Original SRT Text")
+            full_video_script: The complete video script for context (from "Video Script (from Videos)")
+            theme_description: Style guide for the image (from "Theme Description (from Image Themes)")
+            
+        Returns:
+            Generated AI image prompt
+        """
+        if not self.client:
+            logger.warning("OpenAI client not initialized")
+            raise Exception("OpenAI service not available")
+        
+        # Build the user prompt
+        user_prompt = f"""*** begin story ***
+{full_video_script}
+*** end story ***
+
+Segment to create image for:
+"{segment_text}"
+
+Style guide to follow:
+{theme_description if theme_description else "No specific style guide provided. Create a realistic, professional image."}
+
+Generate an AI image prompt for this segment."""
+        
+        try:
+            # Make API call with retries
+            for attempt in range(self.max_retries):
+                try:
+                    response = self.client.chat.completions.create(
+                        model=self.model,
+                        messages=[
+                            {"role": "system", "content": self.IMAGE_PROMPT_SYSTEM},
+                            {"role": "user", "content": user_prompt}
+                        ],
+                        temperature=0.7,
+                        max_tokens=300
+                    )
+                    
+                    prompt = response.choices[0].message.content.strip()
+                    
+                    # Log the API response
+                    api_logger.log_api_response(
+                        service="OpenAI",
+                        endpoint="chat.completions",
+                        status_code=200,
+                        response={
+                            "model": self.model,
+                            "purpose": "ai_image_prompt_generation",
+                            "generated_prompt": prompt[:50] + "..." if len(prompt) > 50 else prompt
+                        }
+                    )
+                    
+                    logger.info(f"Generated AI image prompt: {prompt[:100]}...")
+                    return prompt
+                    
+                except Exception as e:
+                    logger.warning(f"OpenAI API attempt {attempt + 1} failed: {e}")
+                    if attempt < self.max_retries - 1:
+                        time.sleep(self.retry_delay * (attempt + 1))
+                    else:
+                        raise
+                        
+        except Exception as e:
+            logger.error(f"Failed to generate AI image prompt: {e}")
+            raise

@@ -325,6 +325,21 @@ class AirtableService:
             api_logger.log_error('airtable', e, {'operation': 'get_voice', 'voice_id': voice_id})
             raise
     
+    # Generic table operations
+    def get_record(self, table_name: str, record_id: str) -> Dict:
+        """Get a record from any table by ID."""
+        try:
+            table = self.base.table(table_name)
+            record = table.get(record_id)
+            return record
+        except Exception as e:
+            api_logger.log_error('airtable', e, {
+                'operation': 'get_record', 
+                'table_name': table_name, 
+                'record_id': record_id
+            })
+            raise
+    
     # Job operations
     def create_job(self, job_type: str, video_id: Optional[str] = None, 
                    segment_id: Optional[str] = None, external_job_id: Optional[str] = None,

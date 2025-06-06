@@ -729,7 +729,55 @@ def generate_ai_image_webhook():
         # Get AI image prompt from segment
         ai_image_prompt = segment['fields'].get('AI Image Prompt')
         if not ai_image_prompt:
-            return jsonify({'error': 'AI Image Prompt field is empty'}), 400
+            # Generate the prompt automatically
+            logger.info(f"AI Image Prompt is empty for segment {data['segment_id']}, generating automatically")
+            
+            try:
+                # Get the parent video record for full script
+                video_ids = segment['fields'].get('Videos')
+                if not video_ids:
+                    return jsonify({'error': 'No parent video linked to segment'}), 400
+                
+                video = airtable.get_video(video_ids[0])  # Video ID is a list
+                full_script = video['fields'].get('Video Script')
+                if not full_script:
+                    return jsonify({'error': 'Parent video has no script'}), 400
+                
+                # Get theme description if available
+                theme_ids = segment['fields'].get('Image Theme')
+                theme_description = None
+                if theme_ids:
+                    try:
+                        theme = airtable.get_record('Image Themes', theme_ids[0])
+                        theme_description = theme['fields'].get('Theme Description')
+                    except Exception as e:
+                        logger.warning(f"Failed to fetch Image Theme: {e}")
+                        # Continue without theme description
+                
+                # Get segment text
+                segment_text = segment['fields'].get('Original SRT Text', '')
+                if not segment_text:
+                    return jsonify({'error': 'Segment has no Original SRT Text'}), 400
+                
+                # Initialize OpenAI service and generate prompt
+                from services.openai_service import OpenAIService
+                openai_service = OpenAIService()
+                ai_image_prompt = openai_service.generate_ai_image_prompt(
+                    segment_text=segment_text,
+                    full_video_script=full_script,
+                    theme_description=theme_description
+                )
+                
+                # Update segment with generated prompt
+                airtable.update_segment(data['segment_id'], {
+                    'AI Image Prompt': ai_image_prompt
+                })
+                
+                logger.info(f"Generated AI image prompt for segment {data['segment_id']}: {ai_image_prompt[:100]}...")
+                
+            except Exception as e:
+                logger.error(f"Failed to generate AI image prompt: {e}")
+                return jsonify({'error': 'Failed to generate AI image prompt', 'details': str(e)}), 500
         
         # Update segment status to 'Generating Image'
         airtable.update_segment(data['segment_id'], {
