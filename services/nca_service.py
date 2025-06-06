@@ -128,21 +128,25 @@ class NCAService:
 
             ffmpeg_inputs_payload: List[Dict[str, Any]] = [video_input_spec, audio_input_spec]
             
+            # Use filter to extend video with last frame frozen
+            # The tpad filter will pad the video stream to match audio duration
+            ffmpeg_filters_payload: List[Dict[str, Any]] = [
+                {'filter': '[0:v]tpad=stop_mode=clone[v]'}
+            ]
+            
             # Output options
-            # -map 0:v:0 -> take video from first input (video_url)
-            # -map 1:a:0 -> take audio from second input (audio_url)
+            # -map [v] -> use the padded video
+            # -map 1:a:0 -> use the audio stream
             # -c:v libx264 -> re-encode video
-            # -c:a aac -> re-encode audio to AAC
-            # -vf "tpad=stop_mode=clone" -> Hold last frame if video is shorter
-            # The output duration will match the longest stream (audio)
+            # -c:a copy -> copy audio without re-encoding
+            # No -shortest flag to allow full audio duration
             ffmpeg_output_options_payload: List[Dict[str, Any]] = [
-                {'option': '-map', 'argument': '0:v:0'},
+                {'option': '-map', 'argument': '[v]'},
                 {'option': '-map', 'argument': '1:a:0'},
                 {'option': '-c:v', 'argument': 'libx264'},
-                {'option': '-c:a', 'argument': 'aac'},
-                {'option': '-vf', 'argument': 'tpad=stop_mode=clone'}
+                {'option': '-c:a', 'argument': 'copy'}
             ]
-            logger.info(f"Video will hold last frame if shorter than audio. Output duration will match audio. Video codec: libx264, Audio codec: aac.")
+            logger.info(f"Video will hold last frame to match audio duration. Output duration will match audio. Video codec: libx264, Audio codec: copy.")
 
             # Define the output object, including its filename and options
             output_definition = {
@@ -152,9 +156,8 @@ class NCAService:
 
             current_payload_for_logging = {
                 'inputs': ffmpeg_inputs_payload,
+                'filters': ffmpeg_filters_payload,
                 'outputs': [output_definition] # outputs is a list containing the output_definition
-                # 'filename' is now inside output_definition
-                # No filters needed - using -vf in output options instead
             }
             
             if webhook_url:
