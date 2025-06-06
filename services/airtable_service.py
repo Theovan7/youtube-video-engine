@@ -182,6 +182,10 @@ class AirtableService:
                     # Video field is where users upload background videos
                 }
                 
+                # Add Original SRT Text field if provided
+                if 'original_text' in segment:
+                    fields['Original SRT Text'] = segment['original_text']
+                
                 # Calculate timestamps in format "00:00:00.000 --> 00:00:00.000"
                 start_time = segment.get('start_time', i * self.config.DEFAULT_SEGMENT_DURATION)
                 end_time = segment.get('end_time', (i + 1) * self.config.DEFAULT_SEGMENT_DURATION)

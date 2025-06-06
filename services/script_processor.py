@@ -8,6 +8,7 @@ from dataclasses import dataclass, asdict
 
 from config import get_config
 from utils.logger import APILogger
+from services.openai_service import OpenAIService
 
 logger = logging.getLogger(__name__)
 api_logger = APILogger()
@@ -40,6 +41,7 @@ class ScriptProcessor:
         """Initialize script processor."""
         self.config = get_config()()
         self.default_segment_duration = self.config.DEFAULT_SEGMENT_DURATION
+        self.openai_service = OpenAIService()
     
     def process_script(self, script: str, target_segment_duration: Optional[int] = None) -> List[Segment]:
         """
@@ -275,3 +277,60 @@ class ScriptProcessor:
         """Estimate total duration of a script in seconds."""
         word_count = len(script.split())
         return word_count / self.WORDS_PER_SECOND
+    
+    def process_segments_with_markup(self, segments: List[Segment]) -> List[Dict]:
+        """
+        Process segments to add ElevenLabs markup using GPT-4o.
+        
+        Args:
+            segments: List of Segment objects
+            
+        Returns:
+            List of dictionaries with both original and marked-up text
+        """
+        try:
+            processed_segments = []
+            
+            for i, segment in enumerate(segments):
+                # Get context segments
+                previous_text = segments[i - 1].text if i > 0 else None
+                following_text = segments[i + 1].text if i < len(segments) - 1 else None
+                
+                # Generate markup
+                marked_text = self.openai_service.generate_elevenlabs_markup(
+                    segment.text,
+                    previous_text,
+                    following_text
+                )
+                
+                # Create segment data with both original and marked text
+                segment_data = {
+                    'original_text': segment.text,
+                    'text': marked_text,  # This will go in 'SRT Text' field
+                    'order': segment.order,
+                    'start_time': segment.start_time,
+                    'end_time': segment.end_time,
+                    'estimated_duration': segment.estimated_duration,
+                    'word_count': segment.word_count
+                }
+                
+                processed_segments.append(segment_data)
+                
+            logger.info(f"Processed {len(processed_segments)} segments with ElevenLabs markup")
+            return processed_segments
+            
+        except Exception as e:
+            logger.error(f"Error processing segments with markup: {e}")
+            # Fallback: return segments without markup
+            return [
+                {
+                    'original_text': seg.text,
+                    'text': seg.text,
+                    'order': seg.order,
+                    'start_time': seg.start_time,
+                    'end_time': seg.end_time,
+                    'estimated_duration': seg.estimated_duration,
+                    'word_count': seg.word_count
+                }
+                for seg in segments
+            ]

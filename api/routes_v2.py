@@ -105,14 +105,17 @@ def process_script_webhook():
         # Process script into segments using newline-based segmentation
         segments = script_processor.process_script_by_newlines(script_text)
         
+        # Process segments with ElevenLabs markup
+        marked_segments = script_processor.process_segments_with_markup(segments)
+        
         # Convert segments to Airtable format
         segment_data = []
-        for segment in segments:
-            segment_dict = segment.to_dict()
+        for segment in marked_segments:
             segment_data.append({
-                'text': segment_dict['text'],
-                'start_time': segment_dict['start_time'],
-                'end_time': segment_dict['end_time']
+                'text': segment['text'],  # This is the marked-up text
+                'original_text': segment['original_text'],  # This is the original text
+                'start_time': segment['start_time'],
+                'end_time': segment['end_time']
             })
         
         # Create segment records
