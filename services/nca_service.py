@@ -128,24 +128,19 @@ class NCAService:
 
             ffmpeg_inputs_payload: List[Dict[str, Any]] = [video_input_spec, audio_input_spec]
             
-            # Filters to hold last frame when video ends
-            # tpad=stop_mode=clone - holds the last frame after video ends
-            # The filter will extend video to match audio duration
-            ffmpeg_filters_payload: List[Dict[str, Any]] = [
-                {'filter': '[0:v]tpad=stop_mode=clone[v]'}
-            ]
-            
             # Output options
-            # -map [v] -> use the filtered video with last frame hold
+            # -map 0:v:0 -> take video from first input (video_url)
             # -map 1:a:0 -> take audio from second input (audio_url)
             # -c:v libx264 -> re-encode video
             # -c:a aac -> re-encode audio to AAC
-            # Note: Removed -shortest to allow output to extend to full audio duration
+            # -vf "tpad=stop_mode=clone" -> Hold last frame if video is shorter
+            # The output duration will match the longest stream (audio)
             ffmpeg_output_options_payload: List[Dict[str, Any]] = [
-                {'option': '-map', 'argument': '[v]'},
+                {'option': '-map', 'argument': '0:v:0'},
                 {'option': '-map', 'argument': '1:a:0'},
                 {'option': '-c:v', 'argument': 'libx264'},
-                {'option': '-c:a', 'argument': 'aac'}
+                {'option': '-c:a', 'argument': 'aac'},
+                {'option': '-vf', 'argument': 'tpad=stop_mode=clone'}
             ]
             logger.info(f"Video will hold last frame if shorter than audio. Output duration will match audio. Video codec: libx264, Audio codec: aac.")
 
@@ -157,10 +152,9 @@ class NCAService:
 
             current_payload_for_logging = {
                 'inputs': ffmpeg_inputs_payload,
-                'filters': ffmpeg_filters_payload,  # Add the filter for last frame hold
                 'outputs': [output_definition] # outputs is a list containing the output_definition
                 # 'filename' is now inside output_definition
-                # 'global_options' removed for simplification
+                # No filters needed - using -vf in output options instead
             }
             
             if webhook_url:
