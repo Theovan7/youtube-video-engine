@@ -110,19 +110,17 @@ class NCAService:
                           custom_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Combine audio and video files using FFmpeg compose endpoint.
-        The video input will loop indefinitely (-stream_loop -1).
-        The output duration will be determined by the audio stream (-shortest).
-        This ensures the video loops to match the audio's length.
+        If video is shorter than audio, the last frame will be held (freeze frame).
+        The output duration will be determined by the audio stream.
         """
         current_payload_for_logging: Optional[Dict[str, Any]] = None
         try:
             logger.info(f"Attempting to combine video ({video_url}) and audio ({audio_url}) with output name {output_filename}.")
-            logger.info(f"FFmpeg strategy: Video loops (-stream_loop -1), output duration matches audio via -shortest.")
+            logger.info(f"FFmpeg strategy: Video holds last frame if shorter than audio, output duration matches audio.")
 
-            # Video input (Input 0) with looping enabled
+            # Video input (Input 0) - no looping
             video_input_spec: Dict[str, Any] = {
-                'file_url': video_url,
-                'options': [{'option': '-stream_loop', 'argument': "-1"}]
+                'file_url': video_url
             }
             
             # Audio input (Input 1)
@@ -130,20 +128,27 @@ class NCAService:
 
             ffmpeg_inputs_payload: List[Dict[str, Any]] = [video_input_spec, audio_input_spec]
             
+            # Filters to hold last frame when video ends
+            # tpad=stop_mode=clone - holds the last frame after video ends
+            # The filter will extend video to match audio duration
+            ffmpeg_filters_payload: List[Dict[str, Any]] = [
+                {'filter': '[0:v]tpad=stop_mode=clone[v]'}
+            ]
+            
             # Output options
-            # -map 0:v:0 -> take video from first input (video_url)
+            # -map [v] -> use the filtered video with last frame hold
             # -map 1:a:0 -> take audio from second input (audio_url)
-            # -c:v libx264 -> re-encode video (safer for looping/format changes)
+            # -c:v libx264 -> re-encode video
             # -c:a aac -> re-encode audio to AAC
-            # -shortest -> output duration will be determined by the audio stream (since video loops indefinitely)
+            # -shortest -> stop when the shortest stream (audio) ends
             ffmpeg_output_options_payload: List[Dict[str, Any]] = [
-                {'option': '-map', 'argument': '0:v:0'},
+                {'option': '-map', 'argument': '[v]'},
                 {'option': '-map', 'argument': '1:a:0'},
                 {'option': '-c:v', 'argument': 'libx264'},
                 {'option': '-c:a', 'argument': 'aac'},
                 {'option': '-shortest', 'argument': None}  # Python None becomes JSON null
             ]
-            logger.info(f"Video will loop. Output duration will match audio via -shortest. Video codec: libx264, Audio codec: aac.")
+            logger.info(f"Video will hold last frame if shorter than audio. Output duration will match audio. Video codec: libx264, Audio codec: aac.")
 
             # Define the output object, including its filename and options
             output_definition = {
@@ -153,6 +158,7 @@ class NCAService:
 
             current_payload_for_logging = {
                 'inputs': ffmpeg_inputs_payload,
+                'filters': ffmpeg_filters_payload,  # Add the filter for last frame hold
                 'outputs': [output_definition] # outputs is a list containing the output_definition
                 # 'filename' is now inside output_definition
                 # 'global_options' removed for simplification
