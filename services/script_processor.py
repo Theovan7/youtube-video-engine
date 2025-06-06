@@ -41,7 +41,8 @@ class ScriptProcessor:
         """Initialize script processor."""
         self.config = get_config()()
         self.default_segment_duration = self.config.DEFAULT_SEGMENT_DURATION
-        self.openai_service = OpenAIService()
+        # Initialize OpenAI service lazily to avoid startup issues
+        self._openai_service = None
     
     def process_script(self, script: str, target_segment_duration: Optional[int] = None) -> List[Segment]:
         """
@@ -278,6 +279,16 @@ class ScriptProcessor:
         word_count = len(script.split())
         return word_count / self.WORDS_PER_SECOND
     
+    @property
+    def openai_service(self):
+        """Lazy initialization of OpenAI service."""
+        if self._openai_service is None:
+            try:
+                self._openai_service = OpenAIService()
+            except Exception as e:
+                logger.warning(f"Failed to initialize OpenAI service: {e}")
+        return self._openai_service
+    
     def process_segments_with_markup(self, segments: List[Segment]) -> List[Dict]:
         """
         Process segments to add ElevenLabs markup using GPT-4o.
@@ -289,6 +300,11 @@ class ScriptProcessor:
             List of dictionaries with both original and marked-up text
         """
         try:
+            # Check if OpenAI service is available
+            if not self.openai_service:
+                logger.warning("OpenAI service not available, returning segments without markup")
+                return self._segments_without_markup(segments)
+            
             processed_segments = []
             
             for i, segment in enumerate(segments):
@@ -322,15 +338,19 @@ class ScriptProcessor:
         except Exception as e:
             logger.error(f"Error processing segments with markup: {e}")
             # Fallback: return segments without markup
-            return [
-                {
-                    'original_text': seg.text,
-                    'text': seg.text,
-                    'order': seg.order,
-                    'start_time': seg.start_time,
-                    'end_time': seg.end_time,
-                    'estimated_duration': seg.estimated_duration,
-                    'word_count': seg.word_count
-                }
-                for seg in segments
-            ]
+            return self._segments_without_markup(segments)
+    
+    def _segments_without_markup(self, segments: List[Segment]) -> List[Dict]:
+        """Return segments without markup processing."""
+        return [
+            {
+                'original_text': seg.text,
+                'text': seg.text,
+                'order': seg.order,
+                'start_time': seg.start_time,
+                'end_time': seg.end_time,
+                'estimated_duration': seg.estimated_duration,
+                'word_count': seg.word_count
+            }
+            for seg in segments
+        ]

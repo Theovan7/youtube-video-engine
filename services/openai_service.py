@@ -185,9 +185,11 @@ I can't do this anymore—<break time="0.8s"/> I just... <break time="1.0s"/> I 
         self.api_key = self.config.OPENAI_API_KEY
         
         if not self.api_key:
-            raise ValueError("OPENAI_API_KEY not found in environment variables")
+            logger.warning("OPENAI_API_KEY not found in environment variables")
+            self.client = None
+        else:
+            self.client = OpenAI(api_key=self.api_key)
         
-        self.client = OpenAI(api_key=self.api_key)
         self.model = "gpt-4o"
         self.max_retries = 3
         self.retry_delay = 1
@@ -209,6 +211,11 @@ I can't do this anymore—<break time="0.8s"/> I just... <break time="1.0s"/> I 
         Returns:
             The marked-up segment text
         """
+        # Return original text if client not initialized
+        if not self.client:
+            logger.warning("OpenAI client not initialized, returning original text")
+            return target_segment
+            
         try:
             # Build the user prompt
             user_prompt = self._build_segment_prompt(
