@@ -258,17 +258,15 @@ I can't do this anymore—<break time="0.8s"/> I just... <break time="1.0s"/> I 
                     
                     marked_text = response.choices[0].message.content.strip()
                     
-                    # Log the API call
-                    api_logger.log_api_call(
+                    # Log the API response
+                    api_logger.log_api_response(
                         service="OpenAI",
                         endpoint="chat.completions",
-                        method="POST",
                         status_code=200,
-                        request_data={
+                        response={
                             "model": self.model,
-                            "target_segment": target_segment[:50] + "..." if len(target_segment) > 50 else target_segment
-                        },
-                        response_data={"marked_text": marked_text[:50] + "..." if len(marked_text) > 50 else marked_text}
+                            "marked_text": marked_text[:50] + "..." if len(marked_text) > 50 else marked_text
+                        }
                     )
                     
                     return marked_text
