@@ -965,7 +965,11 @@ def generate_video_webhook():
                 airtable.update_segment(data['segment_id'], {'Status': 'Video Generation Failed'})
                 return jsonify({'error': error_msg}), 400
 
-            total_frames = int(actual_segment_duration * FPS)
+            # Add 20% to the duration for zoom videos to ensure smooth transitions
+            zoom_duration = actual_segment_duration * 1.2
+            logger.info(f"Zoom video for segment {data['segment_id']}: Original duration={actual_segment_duration}s, Extended duration={zoom_duration}s (+20%)")
+            
+            total_frames = int(zoom_duration * FPS)
             if total_frames < 1: # Ensure at least 1 frame
                 total_frames = 1
             
@@ -998,7 +1002,7 @@ def generate_video_webhook():
             nca_outputs_payload = [
                 {
                     'options': [
-                        {"option": "-t", "argument": str(actual_segment_duration)},
+                        {"option": "-t", "argument": str(zoom_duration)},
                         {"option": "-c:v", "argument": "libx264"},
                         {"option": "-pix_fmt", "argument": "yuv420p"},
                         {"option": "-an"},
@@ -1045,7 +1049,8 @@ def generate_video_webhook():
                     'segment_id': data['segment_id'],
                     'video_style': 'Zoom (smooth)',
                     'image_url_processed': image_url,
-                    'actual_duration_seconds': actual_segment_duration,
+                    'original_duration_seconds': actual_segment_duration,
+                    'extended_duration_seconds': zoom_duration,
                     'status': 'processing',
                     'external_nca_job_id': external_nca_job_id,
                     'webhook_url_sent_to_nca': webhook_url_nca,
