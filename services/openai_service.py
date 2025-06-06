@@ -188,7 +188,26 @@ I can't do this anymore—<break time="0.8s"/> I just... <break time="1.0s"/> I 
             logger.warning("OPENAI_API_KEY not found in environment variables")
             self.client = None
         else:
-            self.client = OpenAI(api_key=self.api_key)
+            try:
+                # Initialize OpenAI client without proxies
+                # Clear any proxy-related environment variables that might interfere
+                import os
+                proxy_vars = ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy', 'ALL_PROXY', 'all_proxy']
+                saved_proxies = {}
+                for var in proxy_vars:
+                    if var in os.environ:
+                        saved_proxies[var] = os.environ.pop(var)
+                
+                try:
+                    self.client = OpenAI(api_key=self.api_key)
+                finally:
+                    # Restore proxy environment variables
+                    for var, value in saved_proxies.items():
+                        os.environ[var] = value
+                        
+            except Exception as e:
+                logger.error(f"Failed to initialize OpenAI client: {e}")
+                self.client = None
         
         self.model = "gpt-4o"
         self.max_retries = 3
