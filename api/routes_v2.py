@@ -1004,6 +1004,8 @@ def generate_video_webhook():
                     'options': [
                         {"option": "-t", "argument": str(zoom_duration)},
                         {"option": "-c:v", "argument": "libx264"},
+                        {"option": "-preset", "argument": "slow"},
+                        {"option": "-crf", "argument": "23"},
                         {"option": "-pix_fmt", "argument": "yuv420p"},
                         {"option": "-an"},
                         {"option": "-movflags", "argument": "+faststart"}
