@@ -61,10 +61,11 @@ class NCAService:
     @retry(max_attempts=3, exceptions=(requests.RequestException,))
     def upload_file(self, file_data: bytes, filename: str, 
                    content_type: str = 'application/octet-stream') -> Dict:
-        """Upload a file directly to S3 storage."""
+        """Upload a file directly to S3 storage and optionally save locally."""
         try:
             import boto3
             from botocore.client import Config
+            import os
             
             # Initialize S3 client with DigitalOcean Spaces credentials
             s3_client = boto3.client(
@@ -83,6 +84,22 @@ class NCAService:
             unique_id = str(uuid.uuid4())[:8]
             key = f"youtube-video-engine/voiceovers/{timestamp}_{unique_id}_{filename}"
             
+            # Save file locally if LOCAL_BACKUP_PATH is configured
+            local_path = None
+            if hasattr(self.config, 'LOCAL_BACKUP_PATH') and self.config.LOCAL_BACKUP_PATH:
+                # Create directory structure
+                local_dir = os.path.join(self.config.LOCAL_BACKUP_PATH, 'youtube-video-engine', 'voiceovers')
+                os.makedirs(local_dir, exist_ok=True)
+                
+                # Save file locally
+                local_filename = f"{timestamp}_{unique_id}_{filename}"
+                local_path = os.path.join(local_dir, local_filename)
+                
+                with open(local_path, 'wb') as f:
+                    f.write(file_data)
+                
+                logger.info(f"File saved locally: {local_path}")
+            
             # Upload to S3
             s3_client.put_object(
                 Bucket=self.config.NCA_S3_BUCKET_NAME,
@@ -95,11 +112,16 @@ class NCAService:
             # Return the public URL
             public_url = f"https://{self.config.NCA_S3_BUCKET_NAME}.nyc3.digitaloceanspaces.com/{key}"
             
-            return {
+            result = {
                 'url': public_url,
                 'key': key,
                 'bucket': self.config.NCA_S3_BUCKET_NAME
             }
+            
+            if local_path:
+                result['local_path'] = local_path
+            
+            return result
             
         except Exception as e:
             api_logger.log_error('nca', e, {'operation': 'upload_file'})
@@ -110,43 +132,52 @@ class NCAService:
                           custom_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Combine audio and video files using FFmpeg compose endpoint.
-        If video is shorter than audio, the last frame will be held (freeze frame).
-        The output duration will be determined by the audio stream.
+        
+        Duration matching behavior:
+        - If video is shorter than audio: Last frame will be held (freeze frame) up to 10000s
+        - If video is longer than audio: Video will be truncated at audio end
+        - Output duration ALWAYS matches audio duration
+        
+        Uses tpad filter with stop_duration=10000 to extend video up to ~2.8 hours,
+        combined with -shortest flag. Since video can be padded to be longer than
+        any reasonable audio, the audio will always be the shortest stream,
+        ensuring output matches audio duration.
         """
         current_payload_for_logging: Optional[Dict[str, Any]] = None
         try:
             logger.info(f"Attempting to combine video ({video_url}) and audio ({audio_url}) with output name {output_filename}.")
             logger.info(f"FFmpeg strategy: Video holds last frame if shorter than audio, output duration matches audio.")
 
-            # Video input (Input 0) - no looping
+            # Video input (Input 0)
             video_input_spec: Dict[str, Any] = {
                 'file_url': video_url
             }
             
-            # Audio input (Input 1)
+            # Audio input (Input 1) 
             audio_input_spec: Dict[str, Any] = {'file_url': audio_url}
 
             ffmpeg_inputs_payload: List[Dict[str, Any]] = [video_input_spec, audio_input_spec]
             
-            # Use filter to extend video with last frame frozen
-            # The tpad filter will pad the video stream to match audio duration
+            # Use tpad filter to extend video with last frame up to 10000 seconds
+            # This ensures video can extend to match any reasonable audio duration
             ffmpeg_filters_payload: List[Dict[str, Any]] = [
-                {'filter': '[0:v]tpad=stop_mode=clone[v]'}
+                {'filter': '[0:v]tpad=stop_mode=clone:stop_duration=10000[v]'}
             ]
             
             # Output options
             # -map [v] -> use the padded video
-            # -map 1:a:0 -> use the audio stream
+            # -map 1:a:0 -> use original audio (no padding)
             # -c:v libx264 -> re-encode video
             # -c:a copy -> copy audio without re-encoding
-            # No -shortest flag to allow full audio duration
+            # -shortest -> stop output at the shortest stream (audio when video is padded)
             ffmpeg_output_options_payload: List[Dict[str, Any]] = [
                 {'option': '-map', 'argument': '[v]'},
                 {'option': '-map', 'argument': '1:a:0'},
                 {'option': '-c:v', 'argument': 'libx264'},
-                {'option': '-c:a', 'argument': 'copy'}
+                {'option': '-c:a', 'argument': 'copy'},
+                {'option': '-shortest', 'argument': None}
             ]
-            logger.info(f"Video will hold last frame to match audio duration. Output duration will match audio. Video codec: libx264, Audio codec: copy.")
+            logger.info(f"Video extends with last frame (tpad) up to 10000s. Output stops at shortest stream (audio) using -shortest flag. Video codec: libx264, Audio codec: copy.")
 
             # Define the output object, including its filename and options
             output_definition = {

@@ -57,6 +57,9 @@ class Config:
     NCA_S3_SECRET_KEY = os.getenv('NCA_S3_SECRET_KEY')
     NCA_S3_REGION = os.getenv('NCA_S3_REGION', 'nyc3')
     
+    # Local backup configuration
+    LOCAL_BACKUP_PATH = os.getenv('LOCAL_BACKUP_PATH', './local_backups')
+    
     # ElevenLabs Configuration
     ELEVENLABS_API_KEY = os.getenv('ELEVENLABS_API_KEY')
     ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1'
