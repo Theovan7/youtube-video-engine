@@ -10,6 +10,7 @@ from urllib3.util.retry import Retry
 from config import get_config
 from utils.logger import APILogger
 from utils.decorators import retry, rate_limit
+from utils.remote_backup import send_to_remote_backup, determine_file_type
 
 logger = logging.getLogger(__name__)
 api_logger = APILogger()
@@ -60,7 +61,8 @@ class NCAService:
     
     @retry(max_attempts=3, exceptions=(requests.RequestException,))
     def upload_file(self, file_data: bytes, filename: str, 
-                   content_type: str = 'application/octet-stream') -> Dict:
+                   content_type: str = 'application/octet-stream',
+                   file_type: Optional[str] = None) -> Dict:
         """Upload a file directly to S3 storage and optionally save locally."""
         try:
             import boto3
@@ -77,18 +79,35 @@ class NCAService:
                 region_name=self.config.NCA_S3_REGION
             )
             
+            # Determine file type if not provided
+            if not file_type:
+                file_type = determine_file_type(filename)
+                # Default to voiceovers for backward compatibility
+                if file_type == 'unknown':
+                    file_type = 'voiceovers'
+            
             # Generate a unique key for the file
             from datetime import datetime
             import uuid
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
             unique_id = str(uuid.uuid4())[:8]
-            key = f"youtube-video-engine/voiceovers/{timestamp}_{unique_id}_{filename}"
+            
+            # Use appropriate folder based on file type
+            folder_map = {
+                'voiceovers': 'voiceovers',
+                'videos': 'videos',
+                'music': 'music',
+                'images': 'images',
+                'unknown': 'misc'
+            }
+            folder = folder_map.get(file_type, 'misc')
+            key = f"youtube-video-engine/{folder}/{timestamp}_{unique_id}_{filename}"
             
             # Save file locally if LOCAL_BACKUP_PATH is configured
             local_path = None
             if hasattr(self.config, 'LOCAL_BACKUP_PATH') and self.config.LOCAL_BACKUP_PATH:
                 # Create directory structure
-                local_dir = os.path.join(self.config.LOCAL_BACKUP_PATH, 'youtube-video-engine', 'voiceovers')
+                local_dir = os.path.join(self.config.LOCAL_BACKUP_PATH, 'youtube-video-engine', folder)
                 os.makedirs(local_dir, exist_ok=True)
                 
                 # Save file locally
@@ -99,6 +118,14 @@ class NCAService:
                     f.write(file_data)
                 
                 logger.info(f"File saved locally: {local_path}")
+            
+            # Send to remote backup (e.g., local machine)
+            remote_backup_result = send_to_remote_backup(
+                file_data=file_data,
+                filename=f"{timestamp}_{unique_id}_{filename}",
+                file_type=file_type,
+                original_path=key
+            )
             
             # Upload to S3
             s3_client.put_object(
@@ -115,11 +142,15 @@ class NCAService:
             result = {
                 'url': public_url,
                 'key': key,
-                'bucket': self.config.NCA_S3_BUCKET_NAME
+                'bucket': self.config.NCA_S3_BUCKET_NAME,
+                'file_type': file_type
             }
             
             if local_path:
                 result['local_path'] = local_path
+            
+            if remote_backup_result:
+                result['remote_backup'] = remote_backup_result
             
             return result
             

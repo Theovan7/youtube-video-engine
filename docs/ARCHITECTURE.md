@@ -95,8 +95,13 @@ Encapsulates business logic and external service integrations:
 
 #### NCA Toolkit Service
 - Video processing via FFmpeg
+  - Uses `tpad` filter with `stop_mode=clone` for last frame holding
+  - Automatically handles duration mismatches between video and audio
+  - Output duration always matches audio duration
 - File storage on Digital Ocean Spaces
 - Media combination operations
+  - Video shorter than audio: Last frame held up to 300 seconds
+  - Video longer than audio: Video trimmed to audio duration
 
 #### ElevenLabs Service
 - Text-to-speech conversion

@@ -100,7 +100,7 @@ const response = await fetch('/api/v1/combine-segment-media', {
 
 1. **Video Selection Guidelines**
    - Match video mood to content tone
-   - Ensure video length covers the voiceover duration
+   - Video length is flexible - system handles duration automatically
    - Consider visual continuity between segments
    - Avoid distracting or conflicting imagery
 
@@ -108,6 +108,9 @@ const response = await fetch('/api/v1/combine-segment-media', {
    - Supported formats: MP4, MOV, AVI
    - Recommended resolution: 1920x1080 (1080p)
    - Maximum file size: Set by Airtable limits
+   - **Duration**: Videos can be any length - the system automatically handles duration mismatches:
+     - If video < voiceover: Last frame is held (freeze frame) for up to 300 seconds
+     - If video > voiceover: Video is trimmed to match voiceover duration
 
 3. **Quality Checks**
    - Preview videos before uploading

@@ -16,6 +16,8 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from utils.metrics import MetricsCollector
 from datetime import datetime
 import time
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 # Setup logging
 setup_logging()
@@ -24,6 +26,9 @@ api_logger = APILogger()  # Instantiate APILogger for use in this module
 
 # Global metrics collector
 metrics_collector = MetricsCollector()
+
+# Global scheduler for background tasks
+scheduler = None
 
 
 def create_app(config_name=None):
@@ -233,6 +238,36 @@ def create_app(config_name=None):
             'error': 'Internal Server Error',
             'message': 'An unexpected error occurred'
         }), 500
+    
+    # Initialize job monitoring if enabled
+    if app.config.get('POLLING_ENABLED', True):
+        global scheduler
+        scheduler = BackgroundScheduler()
+        
+        # Import here to avoid circular dependencies
+        from services.job_monitor import JobMonitor
+        job_monitor = JobMonitor()
+        
+        # Schedule job checks every 2 minutes (configurable)
+        polling_interval = app.config.get('POLLING_INTERVAL_MINUTES', 2)
+        
+        @scheduler.scheduled_job('interval', minutes=polling_interval)
+        def check_stuck_jobs():
+            """Check for stuck jobs periodically."""
+            try:
+                logger.info("Running scheduled job check")
+                job_monitor.run_check_cycle()
+            except Exception as e:
+                logger.error(f"Error in scheduled job check: {e}")
+        
+        # Start the scheduler
+        scheduler.start()
+        logger.info(f"Job polling enabled - checking every {polling_interval} minutes")
+        
+        # Ensure scheduler shuts down cleanly
+        atexit.register(lambda: scheduler.shutdown() if scheduler else None)
+    else:
+        logger.info("Job polling disabled")
     
     # Log startup
     logger.info(f"YouTube Video Engine started with config: {config_name or 'default'}")

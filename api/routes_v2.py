@@ -277,7 +277,8 @@ def generate_voiceover_direct():
         upload_result = nca.upload_file(
             file_data=result['audio_data'],
             filename=f"voiceover_{data['record_id']}.mp3",
-            content_type='audio/mpeg'
+            content_type='audio/mpeg',
+            file_type='voiceovers'
         )
         
         # Update segment with voiceover URL and success status
@@ -1141,3 +1142,31 @@ def status_v2():
         'architecture': 'hybrid - direct ElevenLabs processing with webhook support for other services',
         'message': 'YouTube Video Engine API v2 is running with fixed ElevenLabs integration'
     })
+
+
+@api_v2_bp.route('/check-stuck-jobs', methods=['POST'])
+def trigger_job_check():
+    """Manually trigger a check for stuck jobs."""
+    try:
+        # Import here to avoid circular dependencies
+        from services.job_monitor import JobMonitor
+        
+        # Get optional parameters
+        older_than_minutes = request.json.get('older_than_minutes', 5) if request.json else 5
+        
+        # Create monitor and run check
+        monitor = JobMonitor()
+        monitor.run_check_cycle()
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Job check completed',
+            'checked_for_jobs_older_than': f'{older_than_minutes} minutes'
+        }), 200
+        
+    except Exception as e:
+        logger.error(f"Error in manual job check: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500

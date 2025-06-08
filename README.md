@@ -21,7 +21,7 @@ The YouTube Video Engine is a Flask-based API service that automates the entire 
 
 - **Backend**: Python 3.11+ with Flask
 - **Database**: Airtable (no SQL database needed)
-- **Media Processing**: NCA Toolkit (FREE)
+- **Media Processing**: NCA Toolkit (FREE) with FFmpeg
 - **Voice Generation**: ElevenLabs API
 - **Image Generation**: OpenAI DALL-E 3 API
 - **Music Generation**: GoAPI (Suno)
@@ -109,6 +109,11 @@ Content-Type: application/json
 ```
 
 **Note**: Before calling this endpoint, users must manually upload a background video to the `Video` field in the segment record in Airtable. This is a "user in the loop" process where human judgment is used to select appropriate videos for each segment.
+
+**Duration Handling**: When combining video with voiceover:
+- If the video is shorter than the voiceover, the last frame will be held (freeze frame effect) for up to 300 seconds to match the audio duration
+- If the video is longer than the voiceover, the video will be trimmed to match the audio duration
+- The output video duration always matches the voiceover duration
 
 #### Combine All Segments
 ```http

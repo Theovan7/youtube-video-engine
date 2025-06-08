@@ -28,6 +28,7 @@ sentry-sdk[flask]==1.40.0
 # Async processing
 celery==5.4.0
 redis==5.0.7
+APScheduler==3.10.4
 
 # Testing
 pytest==8.3.2

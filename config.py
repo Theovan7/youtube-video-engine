@@ -60,6 +60,10 @@ class Config:
     # Local backup configuration
     LOCAL_BACKUP_PATH = os.getenv('LOCAL_BACKUP_PATH', './local_backups')
     
+    # Remote backup configuration (for sending files to local machine)
+    LOCAL_RECEIVER_URL = os.getenv('LOCAL_RECEIVER_URL')  # e.g., http://192.168.1.100:8181
+    LOCAL_UPLOAD_SECRET = os.getenv('LOCAL_UPLOAD_SECRET')  # Shared secret for authentication
+    
     # ElevenLabs Configuration
     ELEVENLABS_API_KEY = os.getenv('ELEVENLABS_API_KEY')
     ELEVENLABS_BASE_URL = 'https://api.elevenlabs.io/v1'
@@ -74,6 +78,11 @@ class Config:
     
     # Application Configuration
     WEBHOOK_BASE_URL = os.getenv('WEBHOOK_BASE_URL', 'http://localhost:5000')
+    
+    # Job Polling Configuration
+    POLLING_ENABLED = os.getenv('POLLING_ENABLED', 'true').lower() == 'true'
+    POLLING_INTERVAL_MINUTES = int(os.getenv('POLLING_INTERVAL_MINUTES', '2'))
+    POLLING_MAX_AGE_HOURS = int(os.getenv('POLLING_MAX_AGE_HOURS', '24'))
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
     
     # Rate Limiting Configuration
@@ -209,6 +218,11 @@ class ProductionConfig(Config):
     
     # Override webhook URL for production
     WEBHOOK_BASE_URL = os.getenv('WEBHOOK_BASE_URL', 'https://youtube-video-engine.fly.dev')
+    
+    # Job Polling Configuration (same as development for now)
+    POLLING_ENABLED = os.getenv('POLLING_ENABLED', 'true').lower() == 'true'
+    POLLING_INTERVAL_MINUTES = int(os.getenv('POLLING_INTERVAL_MINUTES', '2'))
+    POLLING_MAX_AGE_HOURS = int(os.getenv('POLLING_MAX_AGE_HOURS', '24'))
 
 
 # Configuration dictionary
