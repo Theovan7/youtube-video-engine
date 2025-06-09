@@ -206,7 +206,7 @@ class NCAService:
                 {'option': '-map', 'argument': '1:a:0'},
                 {'option': '-c:v', 'argument': 'libx264'},
                 {'option': '-c:a', 'argument': 'copy'},
-                {'option': '-shortest', 'argument': None}
+                {'option': '-shortest'}  # No argument for -shortest flag
             ]
             logger.info(f"Video extends with last frame (tpad) up to 10000s. Output stops at shortest stream (audio) using -shortest flag. Video codec: libx264, Audio codec: copy.")
 
@@ -219,7 +219,10 @@ class NCAService:
             current_payload_for_logging = {
                 'inputs': ffmpeg_inputs_payload,
                 'filters': ffmpeg_filters_payload,
-                'outputs': [output_definition] # outputs is a list containing the output_definition
+                'outputs': [output_definition], # outputs is a list containing the output_definition
+                'global_options': [
+                    {'option': '-y'}  # Overwrite output files without asking
+                ]
             }
             
             if webhook_url:
@@ -326,7 +329,7 @@ class NCAService:
                         {'option': '-map', 'argument': '[aout]'},   # Map the mixed audio stream
                         {'option': '-c:v', 'argument': 'copy'},  # Copy video without re-encoding
                         {'option': '-c:a', 'argument': 'aac'},   # Encode audio to AAC
-                        {'option': '-shortest', 'argument': None} # Ensure output terminates with the shortest stream
+                        {'option': '-shortest'} # Ensure output terminates with the shortest stream
                     ]
                 }],
                 'global_options': [
