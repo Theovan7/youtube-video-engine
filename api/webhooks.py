@@ -17,10 +17,17 @@ from datetime import datetime
 from flask import Blueprint, request, jsonify, current_app
 
 from config import get_config
+from config_pydantic import get_settings
 from services.airtable_service import AirtableService
 from services.nca_service import NCAService
 from utils.logger import APILogger
 from utils.webhook_validator import webhook_validation_required
+
+# Import Pydantic webhook models
+from models.webhooks.nca_models import NCAWebhookPayload
+from models.webhooks.goapi_models import GoAPIWebhookPayload
+from models.webhooks.elevenlabs_models import ElevenLabsWebhookPayload
+from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
 api_logger = APILogger()
@@ -63,18 +70,28 @@ def elevenlabs_webhook_deprecated():
 @webhooks_bp.route('/nca-toolkit', methods=['POST'])
 @webhook_validation_required('nca-toolkit')
 def nca_toolkit_webhook():
-    """Handle NCA Toolkit media processing callbacks.
+    """Handle NCA Toolkit media processing callbacks with Pydantic validation.
     Refactored for robust error handling, detailed logging, and reliable Airtable updates.
     """
     job_id_param = None # Airtable Job Record ID from URL query parameter. Not currently used for main ID.
     # operation = request.args.get('operation') # Get operation early for context if needed. Will be fetched later.
 
     payload = None
+    validated_webhook = None
     raw_data_for_log = "" # Initialize for logging in case of parsing failure
 
     try:
         # Attempt 1: Use Flask's get_json
         payload = request.get_json(silent=True)
+        
+        # NEW: Try Pydantic validation if we have payload
+        if payload and isinstance(payload, dict):
+            try:
+                validated_webhook = NCAWebhookPayload(**payload)
+                logger.info(f"✅ NCA webhook payload validated with Pydantic: operation={validated_webhook.operation}, status={validated_webhook.status}")
+            except ValidationError as e:
+                logger.warning(f"⚠️ NCA webhook Pydantic validation failed (proceeding with legacy logic): {e}")
+                # Continue with existing logic for backwards compatibility
 
         if payload is None:
             # Attempt 2: Manually parse from request.get_data()
@@ -595,16 +612,26 @@ def validate_nca_job_exists(job_id, max_retries=3, retry_delay=2):
 @webhooks_bp.route('/goapi', methods=['POST'])
 @webhook_validation_required('goapi')
 def goapi_webhook():
-    """Handle GoAPI music generation callbacks."""
+    """Handle GoAPI music generation callbacks with Pydantic validation."""
     try:
         # Initialize variables to prevent UnboundLocalError
         music_url = None
         video_url = None
         error_message = None
+        validated_webhook = None
         
         # Get webhook data
         payload = request.get_json()
         job_id = request.args.get('job_id')
+        
+        # NEW: Try Pydantic validation
+        if payload and isinstance(payload, dict):
+            try:
+                validated_webhook = GoAPIWebhookPayload(**payload)
+                logger.info(f"✅ GoAPI webhook payload validated with Pydantic: task_id={validated_webhook.task_id}, status={validated_webhook.status}")
+            except ValidationError as e:
+                logger.warning(f"⚠️ GoAPI webhook Pydantic validation failed (proceeding with legacy logic): {e}")
+                # Continue with existing logic for backwards compatibility
         
         # Enhanced logging for debugging
         logger.info(f"GoAPI webhook received - Job ID: {job_id}")

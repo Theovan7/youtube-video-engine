@@ -8,6 +8,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
 from config import get_config, Config
+from config_pydantic import get_settings
 from api.routes import api_bp
 from api.routes_v2 import api_v2_bp
 from api.webhooks import webhooks_bp

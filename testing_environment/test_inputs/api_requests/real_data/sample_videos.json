@@ -1,0 +1,37 @@
+[
+  {
+    "video_id": "rec249pq4kbAK0ktv",
+    "description": "YouTube Demo #3",
+    "script": "I'm Theo's AI Avatar, notice in this video we can seamlessly add ai generated b-roll. We can also ad...",
+    "has_production_video": false,
+    "has_music": true
+  },
+  {
+    "video_id": "rec2DwwnZ4tkreXTo",
+    "description": "E2E Test 2025-05-26 10:16",
+    "script": "\n    Welcome to our comprehensive test of the YouTube Video Engine.\n    \n    This system demonstrate...",
+    "has_production_video": false,
+    "has_music": false
+  },
+  {
+    "video_id": "rec3X5Gd12HtAS73X",
+    "description": "Test Video 20250526_101641",
+    "script": "\n    Welcome to our video about artificial intelligence.\n    \n    AI is transforming the way we live...",
+    "has_production_video": false,
+    "has_music": false
+  },
+  {
+    "video_id": "rec9hOKH5332iDBAM",
+    "description": "Production Test - 20250525_125400",
+    "script": "\nWelcome to our quick demo of the YouTube Video Engine.\nThis powerful tool can transform your script...",
+    "has_production_video": false,
+    "has_music": false
+  },
+  {
+    "video_id": "recBFkFyGWaGnLm99",
+    "description": "Production Test - 20250525_125647",
+    "script": "\nWelcome to our quick demo of the YouTube Video Engine.\nThis powerful tool can transform your script...",
+    "has_production_video": false,
+    "has_music": false
+  }
+]

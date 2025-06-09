@@ -1,0 +1,50 @@
+[
+  {
+    "job_id": "recMwO5GV5Fy4FBh1",
+    "job_type": "ai_image",
+    "status": "completed",
+    "request_payload": {
+      "segment_id": "recTuqCj6GN2ajsxp",
+      "size": "1792x1008"
+    },
+    "response_payload": "{\"image_urls\": [\"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063047_115bdeaf_ai_generated_recTuqCj6GN2ajsxp_20250606_063047_1.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063047_48c7a40f_ai_generated_recTuqCj6GN2ajsxp_20250606_063047_2.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063048_969026f6_ai_generated_recTuqCj6GN2ajsxp_20250606_063047_3.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063048_09c88d01_ai_generated_recTuqCj6GN2ajsxp_20250606_063047_4.png\"], \"image_count\": 4, \"prompt\": \"A picturesque winding path stretching into the horizon, surrounded by lush greenery and vibrant wildflowers under a clear blue sky. Alongside the path, various symbols of wealth, status, and love are subtly depicted: a golden treasure chest, a luxurious mansion, and a heart-shaped locket, each slightly faded to suggest illusion. The path itself is sunlit, and the scene conveys a sense of serene pursuit, inviting introspection about the true nature of happiness.\", \"size\": \"1792x1008\", \"model\": \"gpt-image-1\", \"output_format\": \"png\"}",
+    "service": "",
+    "external_job_id": ""
+  },
+  {
+    "job_id": "recYHjtPVfFxAu5EZ",
+    "job_type": "ai_image",
+    "status": "completed",
+    "request_payload": {
+      "segment_id": "reci0gT2LhNaIaFtp",
+      "size": "1792x1008"
+    },
+    "response_payload": "{\"image_urls\": [\"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_062729_29cca5a7_ai_generated_reci0gT2LhNaIaFtp_20250606_062728_1.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_062729_f3d43e12_ai_generated_reci0gT2LhNaIaFtp_20250606_062728_2.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_062729_5021dab3_ai_generated_reci0gT2LhNaIaFtp_20250606_062728_3.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_062730_f27be960_ai_generated_reci0gT2LhNaIaFtp_20250606_062728_4.png\"], \"image_count\": 4, \"prompt\": \"A close-up of an ancient, weathered map, its edges frayed and faded, laid out on a wooden table. The map is intricate, filled with detailed, winding paths and symbols representing different quests like wealth, status, and love. Next to the map, an open window reveals a vast, untouched landscape outside, stretching into the horizon with rolling hills and a clear blue sky. Sunlight streams through the window, casting a warm, natural glow over the scene, symbolizing the contrast between the artificial guidance of the map and the boundless possibilities of the real world. The mood is contemplative, inviting reflection on the difference between representation and reality.\", \"size\": \"1792x1008\", \"model\": \"gpt-image-1\", \"output_format\": \"png\"}",
+    "service": "",
+    "external_job_id": ""
+  },
+  {
+    "job_id": "recYrejUxqQdssAhG",
+    "job_type": "ai_image",
+    "status": "completed",
+    "request_payload": {
+      "segment_id": "recjDBBDr7h8KwnTU",
+      "size": "1792x1008"
+    },
+    "response_payload": "{\"image_urls\": [\"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063049_d094b7e1_ai_generated_recjDBBDr7h8KwnTU_20250606_063049_1.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063050_06e20b0a_ai_generated_recjDBBDr7h8KwnTU_20250606_063049_2.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063050_260e870a_ai_generated_recjDBBDr7h8KwnTU_20250606_063049_3.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063050_cbca0398_ai_generated_recjDBBDr7h8KwnTU_20250606_063049_4.png\"], \"image_count\": 4, \"prompt\": \"A young man standing at a crossroads in a serene, misty forest, contemplating deeply. His expression reflects a mix of curiosity and introspection, as if he's searching for answers within himself. The path diverges in front of him, symbolizing different life choices. Sunlight filters through the trees, casting a gentle glow, enhancing the sense of enlightenment and awakening. The mood is contemplative and serene, with the natural setting representing both the external journey and the internal quest for understanding.\", \"size\": \"1792x1008\", \"model\": \"gpt-image-1\", \"output_format\": \"png\"}",
+    "service": "",
+    "external_job_id": ""
+  },
+  {
+    "job_id": "receL98jBYOZgvIli",
+    "job_type": "ai_image",
+    "status": "completed",
+    "request_payload": {
+      "segment_id": "recmXnXCm5tFVAlFo",
+      "size": "1792x1008"
+    },
+    "response_payload": "{\"image_urls\": [\"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063122_9e1e8957_ai_generated_recmXnXCm5tFVAlFo_20250606_063122_1.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063122_da44d161_ai_generated_recmXnXCm5tFVAlFo_20250606_063122_2.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063122_0d8f42c6_ai_generated_recmXnXCm5tFVAlFo_20250606_063122_3.png\", \"https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/voiceovers/20250606_063123_c4f6b674_ai_generated_recmXnXCm5tFVAlFo_20250606_063122_4.png\"], \"image_count\": 4, \"prompt\": \"A young man sits alone at a wooden desk in a warmly lit room, surrounded by books and papers. He gazes thoughtfully out of a large window, lost in contemplation. The room is filled with soft, natural light, casting gentle shadows that create an introspective mood. Outside the window, a serene garden can be seen, symbolizing peace and growth. The scene captures a moment of deep reflection, as the young man searches for meaning beyond material desires, his face reflecting both curiosity and a hint of realization.\", \"size\": \"1792x1008\", \"model\": \"gpt-image-1\", \"output_format\": \"png\"}",
+    "service": "",
+    "external_job_id": ""
+  }
+]
