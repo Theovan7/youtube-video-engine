@@ -5,7 +5,8 @@ Pydantic-based configuration management for YouTube Video Engine.
 import os
 import logging
 from typing import Optional, Literal, List
-from pydantic import BaseSettings, Field, HttpUrl, validator, root_validator
+from pydantic import Field, field_validator, model_validator
+from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
@@ -79,26 +80,26 @@ class Settings(BaseSettings):
     max_processing_time: int = Field(default=300, ge=60, le=3600)
     
     # Table Names (constants)
-    videos_table: str = Field(default='Videos', const=True)
-    segments_table: str = Field(default='Segments', const=True)
-    voices_table: str = Field(default='Voices', const=True)
-    jobs_table: str = Field(default='Jobs', const=True)
-    webhook_events_table: str = Field(default='Webhook Events', const=True)
+    videos_table: Literal['Videos'] = 'Videos'
+    segments_table: Literal['Segments'] = 'Segments'
+    voices_table: Literal['Voices'] = 'Voices'
+    jobs_table: Literal['Jobs'] = 'Jobs'
+    webhook_events_table: Literal['Webhook Events'] = 'Webhook Events'
     
     # Job Types (constants)
-    job_type_voiceover: str = Field(default='voiceover', const=True)
-    job_type_combine: str = Field(default='combine', const=True)
-    job_type_concatenate: str = Field(default='concatenate', const=True)
-    job_type_music: str = Field(default='music', const=True)
-    job_type_final: str = Field(default='final', const=True)
-    job_type_ai_image: str = Field(default='ai_image', const=True)
-    job_type_video: str = Field(default='video_generation', const=True)
+    job_type_voiceover: Literal['voiceover'] = 'voiceover'
+    job_type_combine: Literal['combine'] = 'combine'
+    job_type_concatenate: Literal['concatenate'] = 'concatenate'
+    job_type_music: Literal['music'] = 'music'
+    job_type_final: Literal['final'] = 'final'
+    job_type_ai_image: Literal['ai_image'] = 'ai_image'
+    job_type_video: Literal['video_generation'] = 'video_generation'
     
     # Status Values (constants)
-    status_pending: str = Field(default='pending', const=True)
-    status_processing: str = Field(default='processing', const=True)
-    status_completed: str = Field(default='completed', const=True)
-    status_failed: str = Field(default='failed', const=True)
+    status_pending: Literal['pending'] = 'pending'
+    status_processing: Literal['processing'] = 'processing'
+    status_completed: Literal['completed'] = 'completed'
+    status_failed: Literal['failed'] = 'failed'
     
     # Webhook Validation Configuration
     webhook_validation_elevenlabs_enabled: bool = Field(
@@ -128,9 +129,10 @@ class Settings(BaseSettings):
     enable_metrics: bool = Field(default=True, env='ENABLE_METRICS')
     metrics_retention_hours: int = Field(default=24, ge=1, env='METRICS_RETENTION_HOURS')
     
-    @validator('debug', 'testing', 'polling_enabled', 'webhook_validation_elevenlabs_enabled',
-               'webhook_validation_nca_enabled', 'webhook_validation_goapi_enabled',
-               'enable_metrics', pre=True)
+    @field_validator('debug', 'testing', 'polling_enabled', 'webhook_validation_elevenlabs_enabled',
+                     'webhook_validation_nca_enabled', 'webhook_validation_goapi_enabled',
+                     'enable_metrics', mode='before')
+    @classmethod
     def parse_bool(cls, v):
         """Parse boolean from string."""
         if isinstance(v, bool):
@@ -139,31 +141,32 @@ class Settings(BaseSettings):
             return v.lower() in ('true', '1', 'yes', 'on')
         return bool(v)
     
-    @validator('webhook_base_url')
+    @field_validator('webhook_base_url')
+    @classmethod
     def ensure_no_trailing_slash(cls, v):
         """Remove trailing slash from webhook URL."""
         return str(v).rstrip('/')
     
-    @root_validator
-    def validate_webhook_secrets(cls, values):
+    @model_validator(mode='after')
+    def validate_webhook_secrets(self):
         """Validate webhook secrets are provided when validation is enabled."""
-        if values.get('webhook_validation_elevenlabs_enabled') and not values.get('webhook_secret_elevenlabs'):
+        if self.webhook_validation_elevenlabs_enabled and not self.webhook_secret_elevenlabs:
             raise ValueError('webhook_secret_elevenlabs is required when webhook_validation_elevenlabs_enabled is True')
         
-        if values.get('webhook_validation_nca_enabled') and not values.get('webhook_secret_nca'):
+        if self.webhook_validation_nca_enabled and not self.webhook_secret_nca:
             raise ValueError('webhook_secret_nca is required when webhook_validation_nca_enabled is True')
         
-        if values.get('webhook_validation_goapi_enabled') and not values.get('webhook_secret_goapi'):
+        if self.webhook_validation_goapi_enabled and not self.webhook_secret_goapi:
             raise ValueError('webhook_secret_goapi is required when webhook_validation_goapi_enabled is True')
         
-        return values
+        return self
     
-    @root_validator
-    def validate_backup_config(cls, values):
+    @model_validator(mode='after')
+    def validate_backup_config(self):
         """Validate backup configuration."""
-        if values.get('local_receiver_url') and not values.get('local_upload_secret'):
+        if self.local_receiver_url and not self.local_upload_secret:
             raise ValueError('local_upload_secret is required when local_receiver_url is set')
-        return values
+        return self
     
     def init_sentry(self):
         """Initialize Sentry error tracking."""
@@ -205,18 +208,12 @@ class Settings(BaseSettings):
         
         return event
     
-    class Config:
-        """Pydantic configuration."""
-        env_file = '.env'
-        env_file_encoding = 'utf-8'
-        case_sensitive = False
-        
-        # Allow using uppercase field names
-        fields = {
-            'secret_key': {'env': 'SECRET_KEY'},
-            'debug': {'env': 'FLASK_DEBUG'},
-            'flask_env': {'env': 'FLASK_ENV'},
-        }
+    model_config = {
+        'env_file': '.env',
+        'env_file_encoding': 'utf-8',
+        'case_sensitive': False,
+        'extra': 'ignore',  # Ignore extra env vars
+    }
 
 
 class DevelopmentSettings(Settings):
