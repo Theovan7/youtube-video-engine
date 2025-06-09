@@ -41,7 +41,7 @@ class NCAWebhookPayload(BaseModel):
     """
     # Priority 1: Code-based response
     code: Optional[int] = None
-    response: Optional[Union[str, Dict[str, Any], NCAResponseData]] = None
+    response: Optional[Union[str, Dict[str, Any], List[Dict[str, Any]], NCAResponseData]] = None
     
     # Priority 2: Status-based response
     status: Optional[str] = None
@@ -61,13 +61,16 @@ class NCAWebhookPayload(BaseModel):
     
     @validator('response', pre=True, always=True)
     def parse_response(cls, v):
-        """Parse response field which can be string or dict."""
+        """Parse response field which can be string, dict, or list."""
         if v is None:
             return None
         if isinstance(v, str):
             return v
         elif isinstance(v, dict):
             return NCAResponseData(**v)
+        elif isinstance(v, list):
+            # Handle list response (e.g., ffmpeg/compose format)
+            return v
         return v
     
     def get_status(self) -> Optional[str]:
@@ -109,6 +112,10 @@ class NCAWebhookPayload(BaseModel):
         if self.response:
             if isinstance(self.response, str):
                 return self.response
+            elif isinstance(self.response, list):
+                # Handle list response (e.g., ffmpeg/compose with array format)
+                if len(self.response) > 0 and isinstance(self.response[0], dict):
+                    return self.response[0].get('file_url')
             elif isinstance(self.response, (NCAResponseData, dict)):
                 # Handle both NCAResponseData instance and dict
                 if isinstance(self.response, dict):

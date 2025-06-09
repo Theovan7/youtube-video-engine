@@ -1,0 +1,1486 @@
+[
+  {
+    "webhook_event_id": "rec0YIIo5j79L8m2f",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "GoAPI: Error processing webhook: cannot access local variable 'music_url' where it is not associated with a value",
+    "payload": {
+      "timestamp": 1749110040,
+      "data": {
+        "task_id": "6f1d1f57-d78b-4f11-a748-720a7e2b02b4",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=rechOgikguJgKfhad&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 5,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1749117600000/DGyOb5fKGcsVHWKTT3ezuw/e0Fwms3Ezvu2xEbbtzr8miMi44cuHWdHsowLICZPwcv-HimZGkX7fOtdNCZWEbfc9Zoch1ZLRFdkiAeAn_73FVhH5aMvTZ_yvvvPJ5arQ8d1kGr7P25eh0guSNykWL-Smypn4yQCebK1nbQtuzErZsqityKTv2yMrvvQ7ZzfibdzVJElGcXdhOFwOX1pFpKihUQi-1q8M7sIF1HPGbL-BI-NbBMqlad20IrSdgB_qEQUTV5ab4zqA62VUuuwb-is/QImBLG5CD_2ok4FPXBRiD0JFDfNDbkwSPcnl29N6g-A",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/281081460327773.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvMTE5ODlkYzgtNjAzZi00MmUxLTk4NTYtMGRlYzE3MThjZDY2X3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/464a4519-20b2-40d1-807b-1ac858e26a05_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/281081460327773.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 5100
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-06-05T07:51:49.624945586Z",
+          "started_at": "2025-06-05T07:51:50.555300628Z",
+          "ended_at": "2025-06-05T07:54:00.737827452Z",
+          "usage": {
+            "type": "point",
+            "frozen": 2600000,
+            "consume": 2600000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec0kubbXGIaASO6p",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1748508948,
+      "data": {
+        "task_id": "561b98eb-1d47-48e3-a223-4c67a608a4d8",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=rec231zu2dnBvjshh&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 10,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1748520000000/5CcpFUb8WbAb0GkORjs_6g/PEM-w1unVW37FB6FO0rIV6IphMLFa-8IcuPTEm00ZiGDB-d3Eq4LINMaI9MB5JkyPCvR5LkLhj3TNWXpXSV2tkikdDquL8cP2_AboMkZaSKPP_bA_4z3hl_VhF1TeIuMdc8ikHxgBcj3qv2N5e9PA0ULOctudnBiy0buezGuQcZbIGRAPMyUF2Uahi6HSLKtNASVvmDWB9EOuK_gBZCVdmgIj-qXhri-oXL25vf0NMwSQwfjvr3FnohDc0rvlD97/pMb_f3lpcb2Kw4CnM7U-VPFfxk77WDCsXLjqfhl5mUw",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/280480295533529.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvOTRlNzgwMjktNjJhMi00YmIxLTljZTEtYzA3MDhjYTFkMDM2X3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/868eecaa-fe1a-4541-ad96-7e3ff7e8aa05_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/280480295533529.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 10433
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-05-29T08:53:05.336423595Z",
+          "started_at": "2025-05-29T08:53:05.845560442Z",
+          "ended_at": "2025-05-29T08:55:48.643247144Z",
+          "usage": {
+            "type": "point",
+            "frozen": 5200000,
+            "consume": 5200000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec2eAZPECDeIGwTo",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1748510219,
+      "data": {
+        "task_id": "8fa98b4b-1142-4c47-86c2-49535e73c500",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=recYughPfNurpuJek&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 10,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1748520000000/5CcpFUb8WbAb0GkORjs_6g/PEM-w1unVW37FB6FO0rIV6IphMLFa-8IcuPTEm00ZiGDB-d3Eq4LINMaI9MB5JkyPCvR5LkLhj3TNWXpXSV2tkikdDquL8cP2_AboMkZaSKPP_bA_4z3hl_VhF1TeIuMdc8ikHxgBcj3qv2N5e9PA0ULOctudnBiy0buezGuQcZbIGRAPMyUF2Uahi6HSLKtNASVvmDWB9EOuK_gBZCVdmgIj-qXhri-oXL25vf0NMwSQwfjvr3FnohDc0rvlD97/pMb_f3lpcb2Kw4CnM7U-VPFfxk77WDCsXLjqfhl5mUw",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/280481574338597.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvNWU4OTgxOWMtYjAzYi00ZGQ0LWIxOWItODA3N2RhNTFlNzE4X3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/b116251b-7176-4c0c-ac53-76b91b88fc90_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/280481574338597.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 10433
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-05-29T09:14:24.799194621Z",
+          "started_at": "2025-05-29T09:14:24.96495081Z",
+          "ended_at": "2025-05-29T09:16:59.849211427Z",
+          "usage": {
+            "type": "point",
+            "frozen": 5200000,
+            "consume": 5200000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec3C3rr7oiN6Upfc",
+    "service": "goapi",
+    "processed": true,
+    "success": true,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1749029538,
+      "data": {
+        "task_id": "deb30f37-f510-4bc0-ac58-fccb2c4c23b3",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=recA9ZG21fyO1o120&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 10,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1749038400000/fHL_dFRlwRU0D6qfeQjhNA/SfHrF9EPmUAhvhYrua6FBDqMiGVmYh3dFTBme644Ki_wHlSFXckhEvlxXPnsOuOuOs_xk3QbnTPZismNJ5ux8V_sSWOdlkKsmRRjmXb7bmcVPG3mjFweo65IqU3j_R9UQtjhwG7WiCXnCeSNq1p4BV4SSi2E9Zd2R70lP4e7mQH69O_-pkz69tU-xoQyFUp8JylfUG6kQhfu4kQgt9BHiwqPjwOF4Rpyc1kGAaiwSIEk7GDguxpNxVYjgLuL2Y7uolQDxRYIAVaLxt7LyppHvg/_dM5EvG2ArXgvTuWJiJamBmdv0l0LnHcaYezGaPUxDU",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/281000873528774.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvY2E3ZWIxNWUtZGJkMC00NjVlLWFmMGEtNThjODE5ODI5OTlkX3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 720,
+                "width": 1280,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/64d5958d-8a0d-4623-a957-3adeb9b6aa4d_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/281000873528774.mp4",
+                "height": 720,
+                "width": 1280,
+                "duration": 10433
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-06-04T09:27:04.491185252Z",
+          "started_at": "2025-06-04T09:27:05.600908886Z",
+          "ended_at": "2025-06-04T09:32:18.3846322Z",
+          "usage": {
+            "type": "point",
+            "frozen": 5200000,
+            "consume": 5200000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec3aTzZhyiF4oJgm",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1748508948,
+      "data": {
+        "task_id": "561b98eb-1d47-48e3-a223-4c67a608a4d8",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=rec231zu2dnBvjshh&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 10,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1748520000000/5CcpFUb8WbAb0GkORjs_6g/PEM-w1unVW37FB6FO0rIV6IphMLFa-8IcuPTEm00ZiGDB-d3Eq4LINMaI9MB5JkyPCvR5LkLhj3TNWXpXSV2tkikdDquL8cP2_AboMkZaSKPP_bA_4z3hl_VhF1TeIuMdc8ikHxgBcj3qv2N5e9PA0ULOctudnBiy0buezGuQcZbIGRAPMyUF2Uahi6HSLKtNASVvmDWB9EOuK_gBZCVdmgIj-qXhri-oXL25vf0NMwSQwfjvr3FnohDc0rvlD97/pMb_f3lpcb2Kw4CnM7U-VPFfxk77WDCsXLjqfhl5mUw",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/280480295533529.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvOTRlNzgwMjktNjJhMi00YmIxLTljZTEtYzA3MDhjYTFkMDM2X3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/868eecaa-fe1a-4541-ad96-7e3ff7e8aa05_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/280480295533529.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 10433
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-05-29T08:53:05.336423595Z",
+          "started_at": "2025-05-29T08:53:05.845560442Z",
+          "ended_at": "2025-05-29T08:55:48.643247144Z",
+          "usage": {
+            "type": "point",
+            "frozen": 5200000,
+            "consume": 5200000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec4io7uV9DZyxxVh",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1748511460,
+      "data": {
+        "task_id": "eec74f4c-a698-4959-bc22-ced6f86256a2",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=recwWODtzNZ8Iw90M&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 5,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1748520000000/hNyDU1HuaKdc9RScho1Tkw/vepRuK15ConfScn58ORemoEHREAYk2_1k3GVGvxpLl2XguP6qLXDXfYb46HCR6WT0aB_2ZVfizcZxIMteCw_YIsxNC5okRH-_xbJHHRCiLvqUAwhK7tXgBwVddlx67WR6mq9ufc7oq2qpLCXYMXx5WpjKEb0tYJCunvILjPTHvo/q0V-GGK3qi6Ajlkt2qDRQGC7kyn2fTnpe0XUF3ErFz8",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/280482853327186.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvNzgxY2U4NDYtMDgzYS00NDg3LTllMzktZWM4YjhkYjFkNTRjX3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/fb6655b1-948c-4431-b214-7a51cf0403f9_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/280482853327186.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 5100
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-05-29T09:35:49.382680111Z",
+          "started_at": "2025-05-29T09:35:50.05498012Z",
+          "ended_at": "2025-05-29T09:37:39.988533944Z",
+          "usage": {
+            "type": "point",
+            "frozen": 2600000,
+            "consume": 2600000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec5lJjOGqywvbWJF",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1748955250,
+      "data": {
+        "task_id": "bedc46c1-6ee9-435e-92ed-0ff05ff9ea3d",
+        "model": "Qubico/diffrhythm",
+        "task_type": "txt2audio-base",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=rec0yERZjUvUsRO0v&operation=generate_music_only&target_id=rectTH9JqTfgkvih4",
+            "secret": ""
+          }
+        },
+        "input": {
+          "lyrics": "NoLyrics",
+          "style_audio": "",
+          "style_prompt": "Create an introspective and motivational instrumental track suitable for a reflective video about midlife, personal growth, and wisdom"
+        },
+        "output": {
+          "audio_url": "https://img.theapi.app/temp/8a1d8c14-3f2f-4bc3-9bc2-b3d0dc98f61c.flac"
+        },
+        "meta": {
+          "created_at": "2025-06-03T12:53:39.735350449Z",
+          "started_at": "2025-06-03T12:53:39.987973702Z",
+          "ended_at": "2025-06-03T12:54:10.743676799Z",
+          "usage": {
+            "type": "llm",
+            "frozen": 0,
+            "consume": 0
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec5vYtaYDkMdovht",
+    "service": "goapi",
+    "processed": true,
+    "success": true,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "GoAPI: Video generated for segment reci0gT2LhNaIaFtp. URL: https://storage.theapi.app/videos/281163501338123.mp4",
+    "payload": {
+      "timestamp": 1749192108,
+      "data": {
+        "task_id": "e43c94c7-e158-449f-8431-a2b0bcb71d06",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=recxtbZi5pQ5ckf6C&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 5,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1749204000000/T98h046KsmFY6MQ0GVAZXg/APQuEaK1JvtLRzNUq5gIpsK6JO6aXGgtt0ttwLUm84mcEusceKIBm7wnqkmdo5K_w3jYwS3D9G43Qgpv9oXb9Lr4Qwre3926zLP6Dy8ecSDs6yFUCSUO-r1FMHddaicm_86by6J82YDHdqdjFaMaq7tuUm3bmHHpriKpRR2ndoZNcwvFaYyti_yECzttiTNyvdJbcqgwQyTWXaolhmYKPlMUFE5TBi2OAipPkAPTWtOzbrzvOUjPlViaISB0Mt1l/Ol9S7hEKBPH5l8KSMh5QHILaKg7s5uAvc5goZ-5S1wU",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/281163501338123.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvM2RlNDk1NDYtOGEyYy00ZWM1LThhYmUtZDU5ZmFhOWQzYWQxX3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/c1908aee-9413-4aaa-bc7d-672029c36282_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/281163501338123.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 5100
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-06-06T06:36:16.958763135Z",
+          "started_at": "2025-06-06T06:39:12.129158642Z",
+          "ended_at": "2025-06-06T06:41:48.857852546Z",
+          "usage": {
+            "type": "point",
+            "frozen": 2600000,
+            "consume": 2600000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec5x1RBxyJPvhNgT",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1748510219,
+      "data": {
+        "task_id": "8fa98b4b-1142-4c47-86c2-49535e73c500",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=recYughPfNurpuJek&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 10,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1748520000000/5CcpFUb8WbAb0GkORjs_6g/PEM-w1unVW37FB6FO0rIV6IphMLFa-8IcuPTEm00ZiGDB-d3Eq4LINMaI9MB5JkyPCvR5LkLhj3TNWXpXSV2tkikdDquL8cP2_AboMkZaSKPP_bA_4z3hl_VhF1TeIuMdc8ikHxgBcj3qv2N5e9PA0ULOctudnBiy0buezGuQcZbIGRAPMyUF2Uahi6HSLKtNASVvmDWB9EOuK_gBZCVdmgIj-qXhri-oXL25vf0NMwSQwfjvr3FnohDc0rvlD97/pMb_f3lpcb2Kw4CnM7U-VPFfxk77WDCsXLjqfhl5mUw",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/280481574338597.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvNWU4OTgxOWMtYjAzYi00ZGQ0LWIxOWItODA3N2RhNTFlNzE4X3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/b116251b-7176-4c0c-ac53-76b91b88fc90_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/280481574338597.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 10433
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-05-29T09:14:24.799194621Z",
+          "started_at": "2025-05-29T09:14:24.96495081Z",
+          "ended_at": "2025-05-29T09:16:59.849211427Z",
+          "usage": {
+            "type": "point",
+            "frozen": 5200000,
+            "consume": 5200000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec8GupAuf8zCGVIG",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1748955250,
+      "data": {
+        "task_id": "bedc46c1-6ee9-435e-92ed-0ff05ff9ea3d",
+        "model": "Qubico/diffrhythm",
+        "task_type": "txt2audio-base",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=rec0yERZjUvUsRO0v&operation=generate_music_only&target_id=rectTH9JqTfgkvih4",
+            "secret": ""
+          }
+        },
+        "input": {
+          "lyrics": "NoLyrics",
+          "style_audio": "",
+          "style_prompt": "Create an introspective and motivational instrumental track suitable for a reflective video about midlife, personal growth, and wisdom"
+        },
+        "output": {
+          "audio_url": "https://img.theapi.app/temp/8a1d8c14-3f2f-4bc3-9bc2-b3d0dc98f61c.flac"
+        },
+        "meta": {
+          "created_at": "2025-06-03T12:53:39.735350449Z",
+          "started_at": "2025-06-03T12:53:39.987973702Z",
+          "ended_at": "2025-06-03T12:54:10.743676799Z",
+          "usage": {
+            "type": "llm",
+            "frozen": 0,
+            "consume": 0
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec8uf3KM1tx7v32T",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "GoAPI: Error processing webhook: cannot access local variable 'music_url' where it is not associated with a value",
+    "payload": {
+      "timestamp": 1749102744,
+      "data": {
+        "task_id": "64f63fcc-5b03-4da9-8597-ee156180d3b8",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=rec7Hk6nQcGIAGqub&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 5,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1749110400000/WC_mnBwQvtvDtSJ1QDP8IA/LFqO8Hb7B1iP1-TZ-u0IWRYOflTquTA-V9LgJ88el_taNvrojqLIrnlGGwOxjDTPKBICUUkZtRlEtprab98_emVw7Q1IeuS64hPsymT6JEynblRgxNIcGVD3Z97247MR9Ppta3Y78oBtOFvM7QB4B27q2v3QyvP2FLG0_K3CHf_WxAyCSkCmQ_pdV-8GICpnnEJBZu3iT32qVks75Qo7VYWO9C2W8XFLILcNoevWMUX1s0I7f99sDq9j5SW9qGQY/QEYw2oDNL5AQ503OhL5dQT8l8v1RTjhcXyhcRs9dmJg",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/281074088338307.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvOTk2ZmRjMmQtMGVmMS00MTI3LWE2NTAtODM3NDI1MDBjNDNmX3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/c6d8b0c0-b07e-4eb3-88c7-6686205300b2_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/281074088338307.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 5100
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-06-05T05:48:37.278049847Z",
+          "started_at": "2025-06-05T05:48:37.629838191Z",
+          "ended_at": "2025-06-05T05:52:24.419823394Z",
+          "usage": {
+            "type": "point",
+            "frozen": 2600000,
+            "consume": 2600000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "rec9RwKDuvMSQDDtQ",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1748508948,
+      "data": {
+        "task_id": "561b98eb-1d47-48e3-a223-4c67a608a4d8",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=rec231zu2dnBvjshh&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 10,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1748520000000/5CcpFUb8WbAb0GkORjs_6g/PEM-w1unVW37FB6FO0rIV6IphMLFa-8IcuPTEm00ZiGDB-d3Eq4LINMaI9MB5JkyPCvR5LkLhj3TNWXpXSV2tkikdDquL8cP2_AboMkZaSKPP_bA_4z3hl_VhF1TeIuMdc8ikHxgBcj3qv2N5e9PA0ULOctudnBiy0buezGuQcZbIGRAPMyUF2Uahi6HSLKtNASVvmDWB9EOuK_gBZCVdmgIj-qXhri-oXL25vf0NMwSQwfjvr3FnohDc0rvlD97/pMb_f3lpcb2Kw4CnM7U-VPFfxk77WDCsXLjqfhl5mUw",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/280480295533529.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvOTRlNzgwMjktNjJhMi00YmIxLTljZTEtYzA3MDhjYTFkMDM2X3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/868eecaa-fe1a-4541-ad96-7e3ff7e8aa05_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/280480295533529.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 10433
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-05-29T08:53:05.336423595Z",
+          "started_at": "2025-05-29T08:53:05.845560442Z",
+          "ended_at": "2025-05-29T08:55:48.643247144Z",
+          "usage": {
+            "type": "point",
+            "frozen": 5200000,
+            "consume": 5200000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "recCTVWxoEFh3qcMb",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1748511460,
+      "data": {
+        "task_id": "eec74f4c-a698-4959-bc22-ced6f86256a2",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=recwWODtzNZ8Iw90M&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 5,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1748520000000/hNyDU1HuaKdc9RScho1Tkw/vepRuK15ConfScn58ORemoEHREAYk2_1k3GVGvxpLl2XguP6qLXDXfYb46HCR6WT0aB_2ZVfizcZxIMteCw_YIsxNC5okRH-_xbJHHRCiLvqUAwhK7tXgBwVddlx67WR6mq9ufc7oq2qpLCXYMXx5WpjKEb0tYJCunvILjPTHvo/q0V-GGK3qi6Ajlkt2qDRQGC7kyn2fTnpe0XUF3ErFz8",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/280482853327186.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvNzgxY2U4NDYtMDgzYS00NDg3LTllMzktZWM4YjhkYjFkNTRjX3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/fb6655b1-948c-4431-b214-7a51cf0403f9_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/280482853327186.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 5100
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-05-29T09:35:49.382680111Z",
+          "started_at": "2025-05-29T09:35:50.05498012Z",
+          "ended_at": "2025-05-29T09:37:39.988533944Z",
+          "usage": {
+            "type": "point",
+            "frozen": 2600000,
+            "consume": 2600000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "recFwyKtMGd5t4BbS",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "GoAPI: Error processing webhook: cannot access local variable 'music_url' where it is not associated with a value",
+    "payload": {
+      "timestamp": 1749102744,
+      "data": {
+        "task_id": "64f63fcc-5b03-4da9-8597-ee156180d3b8",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=rec7Hk6nQcGIAGqub&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 5,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1749110400000/WC_mnBwQvtvDtSJ1QDP8IA/LFqO8Hb7B1iP1-TZ-u0IWRYOflTquTA-V9LgJ88el_taNvrojqLIrnlGGwOxjDTPKBICUUkZtRlEtprab98_emVw7Q1IeuS64hPsymT6JEynblRgxNIcGVD3Z97247MR9Ppta3Y78oBtOFvM7QB4B27q2v3QyvP2FLG0_K3CHf_WxAyCSkCmQ_pdV-8GICpnnEJBZu3iT32qVks75Qo7VYWO9C2W8XFLILcNoevWMUX1s0I7f99sDq9j5SW9qGQY/QEYw2oDNL5AQ503OhL5dQT8l8v1RTjhcXyhcRs9dmJg",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/281074088338307.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvOTk2ZmRjMmQtMGVmMS00MTI3LWE2NTAtODM3NDI1MDBjNDNmX3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/c6d8b0c0-b07e-4eb3-88c7-6686205300b2_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/281074088338307.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 5100
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-06-05T05:48:37.278049847Z",
+          "started_at": "2025-06-05T05:48:37.629838191Z",
+          "ended_at": "2025-06-05T05:52:24.419823394Z",
+          "usage": {
+            "type": "point",
+            "frozen": 2600000,
+            "consume": 2600000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "recGnDtsKgoVJu0mA",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "GoAPI: Error processing webhook: cannot access local variable 'music_url' where it is not associated with a value",
+    "payload": {
+      "timestamp": 1749092576,
+      "data": {
+        "task_id": "b6185f2e-c37f-4d0c-a987-181622420531",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=recWX296DcxtPLqRq&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 5,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1749103200000/Fn7GEKFzZ9dmdLsJwR5XKw/LTayaYNryuENFinyHrc6xRLZNWIoL1h6MMnj9hS3J0ilmxoYZpe1drZ7k_EG7rDHHhAXw6x42ypYVPqoVFnJxNXrFYRcona1xCYENrG5JMdfN8FIAme43ipGnoAhffuqyAW_SQn93Y7NxCxErsRt5F7QxAf-Hhai9SbviaQnyUFrWqtKf7Zk02yjL7bgiV4yY2nw3kl0-2oESko77hsTl4E2Ii3KhxtTcx-ivnyAvYPBhU3ws39jex2TIGKjMPre/L4nV4C_HDXD19fv_QoxezDuS2bFjMZuAwLO-yxs4B1w",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/281063903521992.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvNDczNWYwMGQtNzc5OS00ZmVkLWE5Y2ItMGMwMTk5ZGU0ZDU4X3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/dcb7fc2e-cf95-488e-8bd8-e2a338c53915_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/281063903521992.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 5100
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-06-05T02:59:35.369016551Z",
+          "started_at": "2025-06-05T02:59:36.130494202Z",
+          "ended_at": "2025-06-05T03:02:56.863191885Z",
+          "usage": {
+            "type": "point",
+            "frozen": 2600000,
+            "consume": 2600000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "recHJmUnym72BF7FT",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "",
+    "payload": {
+      "timestamp": 1748511460,
+      "data": {
+        "task_id": "eec74f4c-a698-4959-bc22-ced6f86256a2",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=recwWODtzNZ8Iw90M&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 5,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1748520000000/hNyDU1HuaKdc9RScho1Tkw/vepRuK15ConfScn58ORemoEHREAYk2_1k3GVGvxpLl2XguP6qLXDXfYb46HCR6WT0aB_2ZVfizcZxIMteCw_YIsxNC5okRH-_xbJHHRCiLvqUAwhK7tXgBwVddlx67WR6mq9ufc7oq2qpLCXYMXx5WpjKEb0tYJCunvILjPTHvo/q0V-GGK3qi6Ajlkt2qDRQGC7kyn2fTnpe0XUF3ErFz8",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/280482853327186.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvNzgxY2U4NDYtMDgzYS00NDg3LTllMzktZWM4YjhkYjFkNTRjX3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/fb6655b1-948c-4431-b214-7a51cf0403f9_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/280482853327186.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 5100
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-05-29T09:35:49.382680111Z",
+          "started_at": "2025-05-29T09:35:50.05498012Z",
+          "ended_at": "2025-05-29T09:37:39.988533944Z",
+          "usage": {
+            "type": "point",
+            "frozen": 2600000,
+            "consume": 2600000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  },
+  {
+    "webhook_event_id": "recHdNOBlfj9mS39f",
+    "service": "goapi",
+    "processed": true,
+    "success": false,
+    "endpoint": "/webhooks/goapi",
+    "related_job_id": "",
+    "notes": "GoAPI: Error processing webhook: cannot access local variable 'music_url' where it is not associated with a value",
+    "payload": {
+      "timestamp": 1749092576,
+      "data": {
+        "task_id": "b6185f2e-c37f-4d0c-a987-181622420531",
+        "model": "kling",
+        "task_type": "video_generation",
+        "status": "completed",
+        "config": {
+          "service_mode": "public",
+          "webhook_config": {
+            "endpoint": "https://youtube-video-engine.fly.dev/webhooks/goapi?job_id=recWX296DcxtPLqRq&operation=video",
+            "secret": ""
+          }
+        },
+        "input": {
+          "aspect_ratio": "16:9",
+          "camera_control": {
+            "config": {
+              "horizontal": 0,
+              "pan": -10,
+              "roll": 0,
+              "tilt": 0,
+              "vertical": 2,
+              "zoom": 0
+            },
+            "type": "simple"
+          },
+          "cfg_scale": 0.5,
+          "duration": 5,
+          "effect": "expansion",
+          "image_url": "https://v5.airtableusercontent.com/v3/u/41/41/1749103200000/Fn7GEKFzZ9dmdLsJwR5XKw/LTayaYNryuENFinyHrc6xRLZNWIoL1h6MMnj9hS3J0ilmxoYZpe1drZ7k_EG7rDHHhAXw6x42ypYVPqoVFnJxNXrFYRcona1xCYENrG5JMdfN8FIAme43ipGnoAhffuqyAW_SQn93Y7NxCxErsRt5F7QxAf-Hhai9SbviaQnyUFrWqtKf7Zk02yjL7bgiV4yY2nw3kl0-2oESko77hsTl4E2Ii3KhxtTcx-ivnyAvYPBhU3ws39jex2TIGKjMPre/L4nV4C_HDXD19fv_QoxezDuS2bFjMZuAwLO-yxs4B1w",
+          "mode": "std",
+          "negative_prompt": "",
+          "prompt": "animate the video",
+          "version": "1.6"
+        },
+        "output": {
+          "video_url": "https://storage.theapi.app/videos/281063903521992.mp4",
+          "type": "m2v_img2video",
+          "status": 99,
+          "works": [
+            {
+              "content_type": "video",
+              "status": 99,
+              "type": "m2v_img2video",
+              "cover": {
+                "resource": "https://s21-kling.klingai.com/kimg/EMXN1y8qgwEKBnVwbG9hZBIOeWxhYi1zdHVudC1zZ3AaaXNlL2FpX3BvcnRhbF9zZ3BfbTJ2X2ltZzJ2aWRlb18xMDgwcF9zdGRfdjE2X2Rpc3RpbGwvNDczNWYwMGQtNzc5OS00ZmVkLWE5Y2ItMGMwMTk5ZGU0ZDU4X3ZpZGVvX2NvdmVyLmpwZw.origin?x-kcdn-pid=112372",
+                "resource_without_watermark": "",
+                "height": 768,
+                "width": 1152,
+                "duration": 0
+              },
+              "video": {
+                "resource": "https://v21-kling.klingai.com/bs2/upload-ylab-stunt-sgp/se/ai_portal_sgp_m2v_img2video_1080p_std_v16_distill/dcb7fc2e-cf95-488e-8bd8-e2a338c53915_video.mp4?x-kcdn-pid=112372",
+                "resource_without_watermark": "https://storage.theapi.app/videos/281063903521992.mp4",
+                "height": 768,
+                "width": 1152,
+                "duration": 5100
+              }
+            }
+          ]
+        },
+        "meta": {
+          "created_at": "2025-06-05T02:59:35.369016551Z",
+          "started_at": "2025-06-05T02:59:36.130494202Z",
+          "ended_at": "2025-06-05T03:02:56.863191885Z",
+          "usage": {
+            "type": "point",
+            "frozen": 2600000,
+            "consume": 2600000
+          },
+          "is_using_private_pool": false
+        },
+        "detail": null,
+        "logs": [],
+        "error": {
+          "code": 0,
+          "raw_message": "",
+          "message": "",
+          "detail": null
+        }
+      }
+    }
+  }
+]

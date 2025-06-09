@@ -1,0 +1,25 @@
+{
+  "generated": "2025-06-09T11:31:10.944410",
+  "backup_path": "local_backups/youtube-video-engine",
+  "statistics": {
+    "voiceovers": {
+      "count": 0,
+      "total_size": 0,
+      "total_duration": 0
+    },
+    "videos": {
+      "count": 0,
+      "total_size": 0,
+      "total_duration": 0
+    },
+    "music": {
+      "count": 0,
+      "total_size": 0
+    },
+    "images": {
+      "count": 0,
+      "total_size": 0
+    }
+  },
+  "files": []
+}
