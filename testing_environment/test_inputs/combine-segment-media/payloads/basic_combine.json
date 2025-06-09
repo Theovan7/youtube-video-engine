@@ -1,0 +1,8 @@
+{
+  "segment_id": "recXXXXXXXXXXXXXX",
+  "video_url": "https://example.com/video.mp4",
+  "audio_url": "https://example.com/voiceover.mp3",
+  "output_filename": "combined_output.mp4",
+  "transition_type": "fade",
+  "transition_duration": 0.5
+}

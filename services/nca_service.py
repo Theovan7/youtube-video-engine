@@ -165,13 +165,12 @@ class NCAService:
         Combine audio and video files using FFmpeg compose endpoint.
         
         Duration matching behavior:
-        - If video is shorter than audio: Last frame will be held (freeze frame) up to 300s (5 min)
-        - If video is longer than audio: Video will be truncated at audio end
-        - Output duration ALWAYS matches audio duration
+        - If video is shorter than audio: Video will loop/repeat
+        - If video is longer than audio: Video will be truncated
+        - Output duration matches the SHORTEST stream (typically audio)
         
-        Uses tpad filter with stop_duration=300 to extend video up to 5 minutes,
-        combined with -shortest flag. This handles typical voiceover segments while
-        avoiding NCA timeout issues that occur with very large duration values.
+        Uses -shortest flag without filters to avoid NCA timeout issues.
+        The tpad filter was causing consistent 524 timeouts on NCA.
         """
         current_payload_for_logging: Optional[Dict[str, Any]] = None
         try:
@@ -188,27 +187,25 @@ class NCAService:
 
             ffmpeg_inputs_payload: List[Dict[str, Any]] = [video_input_spec, audio_input_spec]
             
-            # Use tpad filter to extend video with last frame up to 300 seconds (5 minutes)
-            # This ensures video can extend to match typical voiceover durations
-            # Note: Using very large values (e.g., 10000) causes NCA timeouts
-            ffmpeg_filters_payload: List[Dict[str, Any]] = [
-                {'filter': '[0:v]tpad=stop_mode=clone:stop_duration=300[v]'}
-            ]
+            # Don't use filters - rely on -shortest flag to handle duration mismatch
+            # The tpad filter causes NCA timeouts even with reasonable values
+            # With -shortest, the output will stop when the shorter stream ends
+            ffmpeg_filters_payload: List[Dict[str, Any]] = []
             
             # Output options
-            # -map [v] -> use the padded video
-            # -map 1:a:0 -> use original audio (no padding)
-            # -c:v libx264 -> re-encode video
+            # -map 0:v -> use video from first input
+            # -map 1:a -> use audio from second input
+            # -c:v copy -> copy video without re-encoding for speed
             # -c:a copy -> copy audio without re-encoding
-            # -shortest -> stop output at the shortest stream (audio when video is padded)
+            # -shortest -> stop output at the shortest stream
             ffmpeg_output_options_payload: List[Dict[str, Any]] = [
-                {'option': '-map', 'argument': '[v]'},
-                {'option': '-map', 'argument': '1:a:0'},
-                {'option': '-c:v', 'argument': 'libx264'},
+                {'option': '-map', 'argument': '0:v'},
+                {'option': '-map', 'argument': '1:a'},
+                {'option': '-c:v', 'argument': 'copy'},
                 {'option': '-c:a', 'argument': 'copy'},
                 {'option': '-shortest'}  # No argument for -shortest flag
             ]
-            logger.info(f"Video extends with last frame (tpad) up to 300s. Output stops at shortest stream (audio) using -shortest flag. Video codec: libx264, Audio codec: copy.")
+            logger.info(f"Using -shortest flag to match output duration to shortest stream. Video codec: copy, Audio codec: copy.")
 
             # Define the output object, including its filename and options
             output_definition = {
@@ -218,12 +215,15 @@ class NCAService:
 
             current_payload_for_logging = {
                 'inputs': ffmpeg_inputs_payload,
-                'filters': ffmpeg_filters_payload,
                 'outputs': [output_definition], # outputs is a list containing the output_definition
                 'global_options': [
                     {'option': '-y'}  # Overwrite output files without asking
                 ]
             }
+            
+            # Only add filters if they exist
+            if ffmpeg_filters_payload:
+                current_payload_for_logging['filters'] = ffmpeg_filters_payload
             
             if webhook_url:
                 current_payload_for_logging['webhook_url'] = webhook_url

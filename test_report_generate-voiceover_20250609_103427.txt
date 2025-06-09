@@ -1,0 +1,10 @@
+YouTube Video Engine Test Report
+==================================================
+Generated: 2025-06-09T10:34:27.170729
+Total Tests: 1
+
+Passed: 0/1
+
+Test 1: /api/v2/generate-voiceover
+  Status: ❌ FAIL
+  Response: 403

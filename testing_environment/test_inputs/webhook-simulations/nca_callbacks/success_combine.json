@@ -1,0 +1,11 @@
+{
+  "id": "recJobID123456789",
+  "job_id": "nca-1234567890",
+  "code": 200,
+  "response": {
+    "url": "https://phi-bucket.nyc3.digitaloceanspaces.com/youtube-video-engine/videos/combined_output.mp4",
+    "duration": 30.5,
+    "size": 5242880,
+    "processing_time": 4.2
+  }
+}
