@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Check the 5 most recent combine jobs created within the last 10 minutes."""
+"""Check all combine jobs in the Jobs table."""
 
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
 from pyairtable import Api
 import json
 from dotenv import load_dotenv
@@ -11,57 +11,50 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-def check_recent_combine_jobs():
-    """Check recent combine jobs and their status."""
+def check_all_combine_jobs():
+    """Check all combine jobs and their status."""
     
     # Initialize Airtable
     api = Api(os.getenv('AIRTABLE_API_KEY'))
     base_id = os.getenv('AIRTABLE_BASE_ID')
     jobs_table = api.table(base_id, 'Jobs')
     
-    # Calculate timestamp for 60 minutes ago
-    sixty_minutes_ago = datetime.utcnow() - timedelta(minutes=60)
-    
-    print("Checking combine jobs from the last 60 minutes...")
-    print(f"Current UTC time: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"Looking for jobs created after: {sixty_minutes_ago.strftime('%Y-%m-%d %H:%M:%S')}")
+    print("Checking all combine jobs in the Jobs table...")
     print("=" * 80)
     
     # Get all jobs and filter for combine jobs
     all_jobs = jobs_table.all()
     
-    # Filter for combine jobs created in the last 10 minutes
+    # Filter for combine jobs
     combine_jobs = []
     for job in all_jobs:
         fields = job.get('fields', {})
         job_type = fields.get('Job Type', '')
         created_time = job.get('createdTime', '')
         
-        if job_type == 'combine' and created_time:
-            # Parse the created time
-            created_dt = datetime.fromisoformat(created_time.replace('Z', '+00:00'))
+        if job_type == 'combine':
+            # Parse the created time if available
+            created_dt = None
+            if created_time:
+                created_dt = datetime.fromisoformat(created_time.replace('Z', '+00:00'))
             
-            # Check if within last 60 minutes
-            if created_dt > sixty_minutes_ago:
-                combine_jobs.append({
-                    'record': job,
-                    'created_dt': created_dt
-                })
+            combine_jobs.append({
+                'record': job,
+                'created_dt': created_dt
+            })
     
     # Sort by creation time (most recent first)
-    combine_jobs.sort(key=lambda x: x['created_dt'], reverse=True)
+    combine_jobs.sort(key=lambda x: x['created_dt'] if x['created_dt'] else datetime.min, reverse=True)
     
-    # Take only the 5 most recent
-    recent_jobs = combine_jobs[:5]
-    
-    if not recent_jobs:
-        print("No combine jobs found in the last 60 minutes.")
+    if not combine_jobs:
+        print("No combine jobs found in the Jobs table.")
         return
     
-    print(f"Found {len(combine_jobs)} combine jobs in the last 60 minutes.")
-    print(f"Showing the 5 most recent:\n")
+    print(f"Found {len(combine_jobs)} combine jobs total.")
+    print(f"Showing the 10 most recent:\n")
     
-    for idx, job_info in enumerate(recent_jobs, 1):
+    # Show up to 10 most recent
+    for idx, job_info in enumerate(combine_jobs[:10], 1):
         job = job_info['record']
         fields = job.get('fields', {})
         created_dt = job_info['created_dt']
@@ -86,14 +79,25 @@ def check_recent_combine_jobs():
                 # Try to parse and pretty print JSON
                 parsed = json.loads(response_payload)
                 print(f"4. Response Payload:")
-                print(json.dumps(parsed, indent=2))
+                # Limit the output for readability
+                payload_str = json.dumps(parsed, indent=2)
+                if len(payload_str) > 500:
+                    print(payload_str[:500] + "\n   ... (truncated)")
+                else:
+                    print(payload_str)
             except:
                 # If not valid JSON, print as is
-                print(f"4. Response Payload: {response_payload}")
+                if len(response_payload) > 200:
+                    print(f"4. Response Payload: {response_payload[:200]}... (truncated)")
+                else:
+                    print(f"4. Response Payload: {response_payload}")
         else:
             print(f"4. Response Payload: None")
         
-        print(f"5. Created: {created_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        if created_dt:
+            print(f"5. Created: {created_dt.strftime('%Y-%m-%d %H:%M:%S UTC')}")
+        else:
+            print(f"5. Created: Unknown")
         
         # Additional info
         video_ref = fields.get('Video Reference', [])
@@ -104,7 +108,7 @@ def check_recent_combine_jobs():
 
 if __name__ == "__main__":
     try:
-        check_recent_combine_jobs()
+        check_all_combine_jobs()
     except Exception as e:
         print(f"Error: {str(e)}")
         import traceback

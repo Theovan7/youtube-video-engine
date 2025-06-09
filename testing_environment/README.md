@@ -1,6 +1,6 @@
-# YouTube Video Engine Testing Environment
+# YouTube Video Engine Testing Framework
 
-A comprehensive testing framework for the YouTube Video Engine API, organized by functions/endpoints.
+A comprehensive testing environment for the YouTube Video Engine API, providing local testing capabilities with automatic file validation and backup inspection.
 
 ## Structure
 
@@ -30,9 +30,12 @@ testing_environment/
 
 ```bash
 # Install dependencies
-pip install watchdog requests python-dotenv
+pip install watchdog requests python-dotenv apscheduler
 
-# Configure environment variables
+# Start the Flask application
+PORT=5001 python app.py
+
+# Configure environment variables (if not already done)
 cp .env.example .env
 # Edit .env with your API keys and settings
 ```
@@ -226,3 +229,19 @@ python testing_environment/file_inspector.py --find recABC123
 # 4. Generate report
 python testing_environment/file_inspector.py --export
 ```
+
+## Local Backup Location
+
+Files are automatically backed up to:
+```
+./local_backups/youtube-video-engine/
+├── voiceovers/   # MP3 files and AI-generated images  
+├── videos/       # Video files
+├── music/        # Music files
+└── images/       # Image files
+```
+
+Example from a successful test:
+- File: `./local_backups/youtube-video-engine/voiceovers/20250609_104914_1564c767_voiceover_recmXnXCm5tFVAlFo.mp3`
+- Size: 379,551 bytes (370 KB)
+- Duration: 23.7 seconds

@@ -368,20 +368,62 @@ def combine_segment_media_webhook():
             custom_id=job_id
         )
         
-        # Update job with external ID
-        if 'job_id' in result:
+        # Check if NCA returned a synchronous response (code 200 with response data)
+        if result.get('code') == 200 and 'response' in result:
+            # NCA processed synchronously - handle the result immediately
+            logger.info(f"NCA processed combine job synchronously for segment {data['record_id']}")
+            
+            # Extract the output URL
+            output_url = None
+            if isinstance(result['response'], list) and len(result['response']) > 0:
+                output_url = result['response'][0].get('file_url')
+            
+            if output_url:
+                # Update segment with combined video
+                airtable.update_segment(data['record_id'], {
+                    'Voiceover + Video': [{'url': output_url}],
+                    'Status': 'Ready'
+                })
+                
+                # Update job as completed
+                airtable.update_job(job_id, {
+                    'External Job ID': result.get('job_id', 'sync-' + job_id),
+                    'Status': config.STATUS_COMPLETED,
+                    'Response Payload': json.dumps(result),
+                    'Notes': 'Processed synchronously by NCA'
+                })
+                
+                return jsonify({
+                    'job_id': job_id,
+                    'segment_id': data['record_id'],
+                    'status': 'completed',
+                    'output_url': output_url,
+                    'message': 'Media combined successfully'
+                }), 200
+            else:
+                logger.error(f"NCA returned success but no output URL for segment {data['record_id']}")
+                airtable.fail_job(job_id, "No output URL in NCA response")
+                return jsonify({'error': 'No output URL in response'}), 500
+        
+        # Otherwise, handle as async job
+        elif 'job_id' in result:
             airtable.update_job(job_id, {
                 'External Job ID': result['job_id'],
                 'Webhook URL': webhook_url,
                 'Status': config.STATUS_PROCESSING
             })
-        
-        return jsonify({
-            'job_id': job_id,
-            'segment_id': data['record_id'],
-            'status': 'processing',
-            'webhook_url': webhook_url
-        }), 202
+            
+            return jsonify({
+                'job_id': job_id,
+                'segment_id': data['record_id'],
+                'status': 'processing',
+                'webhook_url': webhook_url
+            }), 202
+        else:
+            # Unexpected response format
+            logger.error(f"Unexpected NCA response format: {result}")
+            airtable.fail_job(job_id, f"Unexpected NCA response: {json.dumps(result)}")
+            return jsonify({'error': 'Unexpected response from NCA', 'details': result}), 500
         
     except Exception as e:
         logger.error(f"Error combining segment media: {e}")
