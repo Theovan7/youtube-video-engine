@@ -165,14 +165,13 @@ class NCAService:
         Combine audio and video files using FFmpeg compose endpoint.
         
         Duration matching behavior:
-        - If video is shorter than audio: Last frame will be held (freeze frame) up to 10000s
+        - If video is shorter than audio: Last frame will be held (freeze frame) up to 300s (5 min)
         - If video is longer than audio: Video will be truncated at audio end
         - Output duration ALWAYS matches audio duration
         
-        Uses tpad filter with stop_duration=10000 to extend video up to ~2.8 hours,
-        combined with -shortest flag. Since video can be padded to be longer than
-        any reasonable audio, the audio will always be the shortest stream,
-        ensuring output matches audio duration.
+        Uses tpad filter with stop_duration=300 to extend video up to 5 minutes,
+        combined with -shortest flag. This handles typical voiceover segments while
+        avoiding NCA timeout issues that occur with very large duration values.
         """
         current_payload_for_logging: Optional[Dict[str, Any]] = None
         try:
@@ -189,10 +188,11 @@ class NCAService:
 
             ffmpeg_inputs_payload: List[Dict[str, Any]] = [video_input_spec, audio_input_spec]
             
-            # Use tpad filter to extend video with last frame up to 10000 seconds
-            # This ensures video can extend to match any reasonable audio duration
+            # Use tpad filter to extend video with last frame up to 300 seconds (5 minutes)
+            # This ensures video can extend to match typical voiceover durations
+            # Note: Using very large values (e.g., 10000) causes NCA timeouts
             ffmpeg_filters_payload: List[Dict[str, Any]] = [
-                {'filter': '[0:v]tpad=stop_mode=clone:stop_duration=10000[v]'}
+                {'filter': '[0:v]tpad=stop_mode=clone:stop_duration=300[v]'}
             ]
             
             # Output options
@@ -208,7 +208,7 @@ class NCAService:
                 {'option': '-c:a', 'argument': 'copy'},
                 {'option': '-shortest'}  # No argument for -shortest flag
             ]
-            logger.info(f"Video extends with last frame (tpad) up to 10000s. Output stops at shortest stream (audio) using -shortest flag. Video codec: libx264, Audio codec: copy.")
+            logger.info(f"Video extends with last frame (tpad) up to 300s. Output stops at shortest stream (audio) using -shortest flag. Video codec: libx264, Audio codec: copy.")
 
             # Define the output object, including its filename and options
             output_definition = {
